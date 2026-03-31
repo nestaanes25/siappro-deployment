@@ -1,59 +1,129 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIAPPRO - Sistem Informasi Administrasi Protokol
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**SIAPPRO** adalah platform berbasis web yang dirancang untuk mengelola dan mendokumentasikan berbagai kegiatan keprotokolan secara digital. Sistem ini bertujuan untuk meningkatkan efisiensi administrasi, monitoring kegiatan, serta pelaporan data terkait layanan keprotokolan, persidangan, dan perjalanan dinas.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Dashboard Interaktif**: Visualisasi statistik kegiatan dan agenda harian yang dinamis.
+- **Manajemen Layanan Keprotokolan**: Pencatatan dan monitoring permintaan layanan protokol.
+- **Manajemen Persidangan**: Pengelolaan jadwal dan dokumentasi rapat/sidang.
+- **Administrasi Perjalanan Dinas**: Pengaturan surat tugas dan rincian perjalanan dinas.
+- **Kunjungan Kerja**: Pendataan kunjungan tamu atau kunjungan ke luar daerah.
+- **Penugasan Protokol**: Penjadwalan personil protokol untuk setiap agenda.
+- **Ekspor Data**: Mendukung ekspor data ke format PDF (via DomPDF) dan Excel.
+- **Log Histori Aktivitas**: Melacak perubahan data yang dilakukan oleh pengguna.
+- **Manajemen Pengguna**: Sistem login dengan peran (Role-based Access Control): Super Admin, Admin, dan Eksternal.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🛠️ Teknologi yang Digunakan
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Framework**: [Laravel 12+](https://laravel.com)
+- **Frontend**: [Tailwind CSS](https://tailwindcss.com) & [Vite](https://vitejs.dev)
+- **Database**: MySQL / MariaDB
+- **PDF Generator**: Barryvdh Laravel DomPDF
+- **Aesthetics**: Modern UI dengan Dark Mode Support, Glassmorphism, dan Micro-animations.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 📋 Prasyarat Sistem
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Sebelum memulai, pastikan perangkat Anda sudah terinstal:
+- **PHP** >= 8.2
+- **Composer** (Dependency Manager PHP)
+- **Node.js** & **NPM** (untuk mengelola asset frontend)
+- **MySQL/MariaDB Server**
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## ⚙️ Cara Memulai (Panduan Instalasi)
 
-## Contributing
+Ikuti langkah-langkah berikut untuk menjalankan sistem di lingkungan lokal:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 1. Persiapan Project
+Buka terminal dan masuk ke direktori project:
+```bash
+# Pastikan Anda berada di root folder project
+```
 
-## Code of Conduct
+### 2. Instalasi Dependensi
+Jalankan perintah untuk menginstal library PHP dan asset frontend:
+```bash
+composer install
+npm install
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. Konfigurasi Environment
+Salin file `.env.example` menjadi `.env` dan sesuaikan pengaturan database:
+```bash
+cp .env.example .env
+```
+Buka file `.env`, lalu cari dan ubah bagian berikut sesuai konfigurasi database Anda:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nama_database_anda
+DB_USERNAME=root
+DB_PASSWORD=password_database_anda
+```
 
-## Security Vulnerabilities
+### 4. Generate Application Key
+```bash
+php artisan key:generate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 5. Migrasi Database & Seeding
+Jalankan migrasi untuk membuat tabel, mengisi data awal, dan menghubungkan storage:
+```bash
+php artisan migrate --seed
+php artisan storage:link
+```
+Jika ingin mengimpor data histori kegiatan tahun 2023 dari file CSV yang tersedia, jalankan perintah:
+```bash
+php artisan import:siappro-2023
+```
 
-## License
+### 6. Menjalankan Aplikasi
+Gunakan perintah custom yang sudah disediakan (menggunakan `concurrently` untuk server & vite):
+```bash
+composer dev
+```
+Atau jika ingin menjalankan secara manual:
+- Jalankan server: `php artisan serve`
+- Jalankan Vite (untuk CSS/JS): `npm run dev`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Buka browser dan akses di: `http://localhost:8000`
+
+---
+
+## 🔐 Akun Default (Testing)
+
+Anda dapat login menggunakan akun berikut yang dihasilkan dari `UserSeeder`:
+
+**Super Admin**
+- Username : `superadmin`
+- Password : `Spradmin123#`
+
+**Admin**
+- Username : `admin`
+- Password : `Admin123#`
+
+**Eksternal**
+- Username : `eksternal`
+- Password : `Eksternal123#`
+
+---
+
+## 📂 Struktur Penting
+- `app/Http/Controllers`: Logika utama aplikasi per modul.
+- `app/Models`: Definisi skema tabel dan relasi database.
+- `resources/views`: Tampilan user interface (Blade templates).
+- `routes/web.php`: Definisi URL/Route aplikasi.
+- `public/storage`: Tempat penyimpanan file/dokumen yang diunggah.
+
+---
+
+*Dibuat untuk keperluan laporan kepada Mentor/Instansi.*
