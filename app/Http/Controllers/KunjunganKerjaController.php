@@ -23,8 +23,8 @@ class KunjunganKerjaController extends Controller
         // Update last read for superadmin notification badge
         if (Auth::check() && Auth::user()->role === 'super_admin') {
             \App\Models\ModuleRead::updateOrCreate(
-                ['id_user' => Auth::id(), 'module_name' => 'kunjungan-kerja'],
-                ['last_read_at' => now()]
+            ['id_user' => Auth::id(), 'module_name' => 'kunjungan-kerja'],
+            ['last_read_at' => now()]
             );
         }
 
@@ -36,29 +36,42 @@ class KunjunganKerjaController extends Controller
             if ($request->filled('start_date') && $request->filled('end_date')) {
                 $q->whereDate('tanggal_kunjungan', '<=', $request->end_date)
                     ->whereRaw('DATE(COALESCE(tanggal_selesai, tanggal_kunjungan)) >= ?', [$request->start_date]);
-            } elseif ($request->filled('month')) {
+            }
+            elseif ($request->filled('month')) {
                 try {
                     $date = \Carbon\Carbon::parse($request->month);
                     $q->whereYear('tanggal_kunjungan', $date->year)
                         ->whereMonth('tanggal_kunjungan', $date->month);
-                } catch (\Exception $e) {
                 }
-            } elseif ($request->filled('year')) {
+                catch (\Exception $e) {
+                }
+            }
+            elseif ($request->filled('year')) {
                 $q->whereYear('tanggal_kunjungan', $request->year);
             }
 
-            // Search Logic
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $q->where(function ($sub) use ($search) {
-                    $sub->where('nama_kegiatan', 'like', "%{$search}%")
-                        ->orWhere('tujuan_luar_negeri', 'like', "%{$search}%")
-                        ->orWhereHas('jenisKunjungan', function ($q) use ($search) {
-                            $q->where('nama_jenis', 'like', "%{$search}%");
-                        })
+            if ($request->filled('id_anggota')) {
+                $q->where(function ($sub) use ($request) {
+                            $sub->whereJsonContains('id_anggota', (string)$request->id_anggota)
+                                ->orWhereJsonContains('id_anggota', (int)$request->id_anggota);
+                        }
+                        );
+                    }
+
+                    // Search Logic
+                    if ($request->filled('search')) {
+                        $search = $request->search;
+                        $q->where(function ($sub) use ($search) {
+                            $sub->where('nama_kegiatan', 'like', "%{$search}%")
+                                ->orWhere('tujuan_luar_negeri', 'like', "%{$search}%")
+                                ->orWhereHas('jenisKunjungan', function ($q) use ($search) {
+                        $q->where('nama_jenis', 'like', "%{$search}%");
+                    }
+                    )
                         ->orWhereHas('provinsi', function ($q) use ($search) {
-                            $q->where('nama_provinsi', 'like', "%{$search}%");
-                        });
+                        $q->where('nama_provinsi', 'like', "%{$search}%");
+                    }
+                    );
 
                     // Search names in JSON field id_anggota
                     $matchingAnggotaIds = MasterAnggotaDewan::where('nama', 'like', "%{$search}%")
@@ -78,7 +91,8 @@ class KunjunganKerjaController extends Controller
 
                     // Search in rombongan (JSON array of strings)
                     $sub->orWhere('rombongan', 'like', "%{$search}%");
-                });
+                }
+                );
             }
         };
 
@@ -104,17 +118,17 @@ class KunjunganKerjaController extends Controller
         }
         arsort($totalAnggotaCounts);
         $totalTopIds = array_slice(array_keys($totalAnggotaCounts), 0, 5);
-        $totalBreakdown = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $totalTopIds)->get()->map(function($a) use ($totalAnggotaCounts) {
+        $totalBreakdown = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $totalTopIds)->get()->map(function ($a) use ($totalAnggotaCounts) {
             return [
-                'label' => explode(',', $a->nama)[0],
-                'value' => $totalAnggotaCounts[$a->id_anggota]
+            'label' => explode(',', $a->nama)[0],
+            'value' => $totalAnggotaCounts[$a->id_anggota]
             ];
         })->sortByDesc('value')->values();
 
         $jenisKunjunganSummaryRaw = MasterJenisKunjungan::withCount([
             'kunjunganKerja as total' => function ($q) use ($applyFilter) {
-                $applyFilter($q);
-            }
+            $applyFilter($q);
+        }
         ])->get();
 
         $isEksternal = Auth::user()->role === 'eksternal';
@@ -122,20 +136,22 @@ class KunjunganKerjaController extends Controller
         if ($isEksternal) {
             $jenisKunjunganSummary = $jenisKunjunganSummaryRaw->filter(function ($jenis) {
                 $name = strtolower($jenis->nama_jenis);
-                if (str_contains($name, 'pendampingan')) return false;
+                if (str_contains($name, 'pendampingan'))
+                    return false;
                 return true;
             })->map(function ($jenis) use ($applyFilter) {
                 $name = strtolower($jenis->nama_jenis);
-                
+
                 $key = $jenis->nama_jenis;
                 if (str_contains($name, 'luar negeri')) {
                     $key = 'Kunjungan Kerja Luar Negeri';
-                } elseif (str_contains($name, 'dalam negeri')) {
+                }
+                elseif (str_contains($name, 'dalam negeri')) {
                     $key = 'Kunjungan Kerja Dalam Negeri';
                 }
 
                 $totalCount = $jenis->total;
-                
+
                 // Color Style based on type
                 $style = ['bg' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'border' => 'border-blue-200', 'icon_bg' => 'from-blue-500 to-blue-600', 'shadow' => 'shadow-blue-500/30', 'text' => 'text-blue-600', 'chip_bg' => 'bg-blue-100']; // Domestic Blue
                 if (str_contains(strtolower($key), 'luar negeri')) {
@@ -145,15 +161,16 @@ class KunjunganKerjaController extends Controller
                 // Add breakdown for external view too (if needed, or empty if privacy concerns)
                 $jenis->breakdown = collect(); // Or calculate if allowed
 
-                return (object) [
-                    'nama_jenis' => $key,
-                    'total' => $totalCount,
-                    'label' => str_contains(strtolower($key), 'luar negeri') ? 'Luar Negeri' : 'Dalam Negeri',
-                    'style' => $style,
-                    'breakdown' => collect() // Keep empty for external
+                return (object)[
+                'nama_jenis' => $key,
+                'total' => $totalCount,
+                'label' => str_contains(strtolower($key), 'luar negeri') ? 'Luar Negeri' : 'Dalam Negeri',
+                'style' => $style,
+                'breakdown' => collect() // Keep empty for external
                 ];
             })->values();
-        } else {
+        }
+        else {
             $jenisKunjunganSummary = $jenisKunjunganSummaryRaw->map(function ($jenis) use ($applyFilter) {
                 // Calculate Anggota Dewan Breakdown for this category
                 $records = \App\Models\KunjunganKerja::where('id_jenis_kunjungan', $jenis->id_jenis_kunjungan);
@@ -174,30 +191,31 @@ class KunjunganKerjaController extends Controller
                 }
                 arsort($anggotaCounts);
                 $topIds = array_slice(array_keys($anggotaCounts), 0, 5);
-                $topAnggota = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $topIds)->get()->map(function($a) use ($anggotaCounts) {
-                    return [
+                $topAnggota = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $topIds)->get()->map(function ($a) use ($anggotaCounts) {
+                        return [
                         'label' => explode(',', $a->nama)[0],
                         'value' => $anggotaCounts[$a->id_anggota]
+                        ];
+                    }
+                    )->sortByDesc('value')->values();
+
+                    $jenis->breakdown = $topAnggota;
+
+                    $colors = [
+                        ['bg' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'border' => 'border-blue-200', 'icon_bg' => 'from-blue-500 to-blue-600', 'shadow' => 'shadow-blue-500/30', 'text' => 'text-blue-600', 'chip_bg' => 'bg-blue-100'],
+                        ['bg' => 'bg-gradient-to-br from-red-50 to-red-100', 'border' => 'border-red-200', 'icon_bg' => 'from-red-500 to-red-600', 'shadow' => 'shadow-red-500/30', 'text' => 'text-red-600', 'chip_bg' => 'bg-red-100'],
+                        ['bg' => 'bg-gradient-to-br from-green-50 to-green-100', 'border' => 'border-green-200', 'icon_bg' => 'from-green-500 to-green-600', 'shadow' => 'shadow-green-500/30', 'text' => 'text-green-600', 'chip_bg' => 'bg-green-100'],
+                        ['bg' => 'bg-gradient-to-br from-teal-50 to-teal-100', 'border' => 'border-teal-200', 'icon_bg' => 'from-teal-500 to-teal-600', 'shadow' => 'shadow-teal-500/30', 'text' => 'text-teal-600', 'chip_bg' => 'bg-teal-100'],
                     ];
-                })->sortByDesc('value')->values();
 
-                $jenis->breakdown = $topAnggota;
+                    $colorIndex = ($jenis->id_jenis_kunjungan - 1) % count($colors);
+                    $jenis->style = $colors[$colorIndex];
 
-                $colors = [
-                    ['bg' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'border' => 'border-blue-200', 'icon_bg' => 'from-blue-500 to-blue-600', 'shadow' => 'shadow-blue-500/30', 'text' => 'text-blue-600', 'chip_bg' => 'bg-blue-100'],
-                    ['bg' => 'bg-gradient-to-br from-red-50 to-red-100', 'border' => 'border-red-200', 'icon_bg' => 'from-red-500 to-red-600', 'shadow' => 'shadow-red-500/30', 'text' => 'text-red-600', 'chip_bg' => 'bg-red-100'],
-                    ['bg' => 'bg-gradient-to-br from-green-50 to-green-100', 'border' => 'border-green-200', 'icon_bg' => 'from-green-500 to-green-600', 'shadow' => 'shadow-green-500/30', 'text' => 'text-green-600', 'chip_bg' => 'bg-green-100'],
-                    ['bg' => 'bg-gradient-to-br from-teal-50 to-teal-100', 'border' => 'border-teal-200', 'icon_bg' => 'from-teal-500 to-teal-600', 'shadow' => 'shadow-teal-500/30', 'text' => 'text-teal-600', 'chip_bg' => 'bg-teal-100'],
-                ];
-                
-                $colorIndex = ($jenis->id_jenis_kunjungan - 1) % count($colors);
-                $jenis->style = $colors[$colorIndex];
-                
-                // Simplified label
-                $jenis->label = str_replace(['Administrasi Kunjungan Kerja ', 'Pendampingan Kunjungan Kerja '], '', $jenis->nama_jenis);
-                
-                return $jenis;
-            });
+                    // Simplified label
+                    $jenis->label = str_replace(['Administrasi Kunjungan Kerja ', 'Pendampingan Kunjungan Kerja '], '', $jenis->nama_jenis);
+
+                    return $jenis;
+                });
         }
 
         $totalProtokol = MasterPetugasProtokol::count();
@@ -209,7 +227,7 @@ class KunjunganKerjaController extends Controller
         if ($request->has('export')) {
             $kunjungan = $query->get();
             $columns = $request->input('columns', []);
-            
+
             if (empty($columns)) {
                 $columns = ['tanggal', 'waktu', 'nama_kegiatan', 'jenis_kunjungan', 'anggota_dewan', 'rombongan', 'tujuan'];
             }
@@ -219,10 +237,34 @@ class KunjunganKerjaController extends Controller
                 return response(view('kunjungan-kerja.excel', compact('kunjungan', 'columns')))
                     ->header('Content-Type', 'application/vnd.ms-excel')
                     ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
-            } 
-            
+            }
+
             if ($request->export == 'pdf') {
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('kunjungan-kerja.pdf', compact('kunjungan', 'columns'));
+                @ini_set('memory_limit', '512M');
+
+                $subTitleParts = [];
+                if($request->filled('start_date') && $request->filled('end_date')) {
+                    $subTitleParts[] = "Periode: " . \Carbon\Carbon::parse($request->start_date)->isoFormat('D MMMM Y') . " - " . \Carbon\Carbon::parse($request->end_date)->isoFormat('D MMMM Y');
+                } elseif($request->filled('date')) {
+                    $subTitleParts[] = "Tanggal: " . \Carbon\Carbon::parse($request->date)->isoFormat('D MMMM Y');
+                } elseif($request->filled('month')) {
+                    $subTitleParts[] = "Bulan: " . \Carbon\Carbon::parse($request->month)->isoFormat('MMMM Y');
+                } elseif($request->filled('year')) {
+                    $subTitleParts[] = "Tahun: " . $request->year;
+                }
+
+                if($request->filled('search')) {
+                    $subTitleParts[] = "Kategori/Cari: " . $request->search;
+                }
+                
+                if($request->filled('id_anggota')) {
+                    $anggota = MasterAnggotaDewan::find($request->id_anggota);
+                    if($anggota) $subTitleParts[] = "Anggota: " . $anggota->nama;
+                }
+
+                $subTitle = empty($subTitleParts) ? 'Semua Data' : implode(' | ', $subTitleParts);
+
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('kunjungan-kerja.pdf', compact('kunjungan', 'columns', 'subTitle'));
                 $pdf->setPaper('a4', 'landscape');
                 return $pdf->download('laporan-kunjungan-kerja.pdf');
             }
@@ -231,13 +273,16 @@ class KunjunganKerjaController extends Controller
         // 6. Pagination
         $kunjungan = $query->paginate(10)->onEachSide(1)->withQueryString();
 
+        $masterAnggota = MasterAnggotaDewan::where('is_active', 1)->orderBy('nama')->get();
+
         return view('kunjungan-kerja.index', compact(
             'kunjungan',
             'totalKegiatan',
             'totalBreakdown',
             'totalProtokol',
             'jenisKunjunganSummary',
-            'isEksternal'
+            'isEksternal',
+            'masterAnggota'
         ));
     }
 
@@ -311,11 +356,13 @@ class KunjunganKerjaController extends Controller
                 'rombongan' => $validated['rombongan'] ?? [],
                 'file_path' => $filePath,
                 'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
             ]);
 
             DB::commit();
             return redirect()->route('kunjungan-kerja')->with('success', 'Kegiatan kunjungan kerja berhasil ditambahkan.');
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             if ($filePath) {
                 Storage::disk('public')->delete($filePath);
@@ -331,6 +378,11 @@ class KunjunganKerjaController extends Controller
     {
         $item = KunjunganKerja::with(['jenisKunjungan', 'provinsi', 'creator', 'historyLogs.user'])
             ->findOrFail($id);
+
+        if (Auth::user()->role === 'super_admin' && !$item->is_seen_by_superadmin) {
+            $item->is_seen_by_superadmin = true;
+            $item->save();
+        }
 
         return view('kunjungan-kerja.show', compact('item'));
     }
@@ -410,7 +462,12 @@ class KunjunganKerjaController extends Controller
                 'id_anggota' => $validated['anggota_dewan_id'] ?? [],
                 'rombongan' => $validated['rombongan'] ?? [],
                 'file_path' => $filePath,
+                'updated_by' => Auth::id(),
             ];
+
+            if (Auth::user()->role === 'admin') {
+                $updateData['is_seen_by_superadmin'] = false;
+            }
 
             // Only update petugas if user is super admin (since field is hidden for others)
             if (auth()->user()->isSuperAdmin()) {
@@ -421,7 +478,8 @@ class KunjunganKerjaController extends Controller
 
             DB::commit();
             return redirect()->route('kunjungan-kerja')->with('success', 'Kegiatan kunjungan kerja berhasil diperbarui.');
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
@@ -456,7 +514,8 @@ class KunjunganKerjaController extends Controller
 
             DB::commit();
             return redirect()->route('kunjungan-kerja')->with('success', 'Kegiatan kunjungan kerja berhasil dihapus.');
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

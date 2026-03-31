@@ -131,6 +131,11 @@
                             Upload File
                         </label>
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer relative">
+                            <button type="button" id="btn-clear-file" class="absolute top-4 right-4 z-50 p-1.5 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-all hidden shadow-sm border border-red-100" title="Hapus file">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                             <div id="file-icon" class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-400 text-white mb-3 transition-colors duration-200">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             </div>
@@ -268,16 +273,15 @@
             new TomSelect('#petugas', getMultiSelectSettings('Pilih Petugas Protokol...'));
             @endif
 
-            // File Upload Preview
-            const fileInput = document.getElementById('file-upload');
-            const fileNameDisplay = document.getElementById('file-name');
-            const fileIcon = document.getElementById('file-icon');
-            
-            if(fileInput && fileNameDisplay && fileIcon) {
-                fileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
+                // File Upload Preview
+                const fileInput = document.getElementById('file-upload');
+                const fileNameDisplay = document.getElementById('file-name');
+                const fileIcon = document.getElementById('file-icon');
+                const btnClearFile = document.getElementById('btn-clear-file');
+                
+                function updateFilePreview(file) {
                     if (file) {
-                        fileNameDisplay.innerHTML = `<span class="font-medium text-[#3B5286]">${file.name}</span> <span class="text-xs text-gray-500">(${(file.size/1024).toFixed(1)} KB)</span>`;
+                        fileNameDisplay.innerHTML = `<span class="font-medium text-[#3B5286]">${file.name}</span> <br> <span class="text-xs text-gray-500">(${(file.size/1024).toFixed(1)} KB)</span>`;
                         
                         const fileExt = file.name.split('.').pop().toLowerCase();
                         let iconColorClass = 'bg-gray-400';
@@ -287,12 +291,28 @@
                         else if (['png', 'jpg', 'jpeg'].includes(fileExt)) iconColorClass = 'bg-yellow-500';
                         
                         fileIcon.className = `inline-flex items-center justify-center w-12 h-12 rounded-full text-white mb-3 transition-colors duration-200 ${iconColorClass}`;
+                        if(btnClearFile) btnClearFile.classList.remove('hidden');
                     } else {
+                        if(fileInput) fileInput.value = '';
                         fileNameDisplay.innerHTML = 'Drag & drop file di sini atau <span class="text-blue-500 font-medium">klik untuk browse</span>';
                         fileIcon.className = 'inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-400 text-white mb-3 transition-colors duration-200';
+                        if(btnClearFile) btnClearFile.classList.add('hidden');
                     }
-                });
-            }
+                }
+
+                if(fileInput) {
+                    fileInput.addEventListener('change', function(e) {
+                        updateFilePreview(e.target.files[0]);
+                    });
+                }
+
+                if(btnClearFile) {
+                    btnClearFile.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        updateFilePreview(null);
+                    });
+                }
         });
     </script>
     @endpush

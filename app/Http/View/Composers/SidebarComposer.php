@@ -41,11 +41,19 @@ class SidebarComposer
                 ->where('module_name', $name)
                 ->value('last_read_at');
 
-            $query = $modelClass::whereIn('created_by', $adminIds);
-            
-            if ($lastRead) {
-                $query->where('created_at', '>', $lastRead);
-            }
+            $query = $modelClass::where(function ($q) use ($adminIds, $lastRead) {
+                if ($lastRead) {
+                    $q->where(function ($sub) use ($adminIds, $lastRead) {
+                        $sub->whereIn('created_by', $adminIds)
+                            ->where('created_at', '>', $lastRead);
+                    })->orWhere(function ($sub) use ($adminIds, $lastRead) {
+                        $sub->whereIn('updated_by', $adminIds)
+                            ->where('updated_at', '>', $lastRead);
+                    });
+                } else {
+                    $q->whereIn('created_by', $adminIds);
+                }
+            });
 
             $counts[$name] = $query->count();
         }

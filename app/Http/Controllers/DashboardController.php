@@ -143,14 +143,16 @@ class DashboardController extends Controller
             ->whereDate('tanggal_kegiatan', $targetDate)
             ->get()
             ->map(fn($item) => [
-        'title' => $item->nama_kegiatan,
-        'time' => $item->waktu ?\Carbon\Carbon::parse($item->waktu)->format('H:i') : '—',
-        'date' => $item->tanggal_kegiatan,
-        'location' => $item->tempat,
-        'category' => 'Pelayanan',
-        'status' => 'Upcoming',
-        'attendees' => $item->anggotaDewan->pluck('nama')->toArray()
-        ])
+                'title' => $item->nama_kegiatan,
+                'time' => $item->waktu ?\Carbon\Carbon::parse($item->waktu)->format('H:i') : '—',
+                'date' => $item->tanggal_kegiatan,
+                'location' => $item->tempat,
+                'category' => 'Pelayanan',
+                'category_code' => 'PK',
+                'status' => 'Upcoming',
+                'attendees' => $item->anggotaDewan->pluck('nama')->toArray(),
+                'url' => route('pelayanan-keprotokolan.show', $item->id_pelayanan)
+            ])
         );
 
         // Persidangan
@@ -159,14 +161,16 @@ class DashboardController extends Controller
             ->whereDate('tanggal_persidangan', $targetDate)
             ->get()
             ->map(fn($item) => [
-        'title' => $item->nama_persidangan,
-        'time' => $item->waktu ?\Carbon\Carbon::parse($item->waktu)->format('H:i') : '—',
-        'date' => $item->tanggal_persidangan,
-        'location' => $item->tempat,
-        'category' => 'Persidangan',
-        'status' => 'Upcoming',
-        'attendees' => $item->anggotaDewan->pluck('nama')->toArray()
-        ])
+                'title' => $item->nama_persidangan,
+                'time' => $item->waktu ?\Carbon\Carbon::parse($item->waktu)->format('H:i') : '—',
+                'date' => $item->tanggal_persidangan,
+                'location' => $item->tempat,
+                'category' => 'Persidangan',
+                'category_code' => 'PS',
+                'status' => 'Upcoming',
+                'attendees' => $item->anggotaDewan->pluck('nama')->toArray(),
+                'url' => route('persidangan.show', $item->id_persidangan)
+            ])
         );
 
         $rawTodayEvents = $rawTodayEvents->concat(
@@ -175,15 +179,37 @@ class DashboardController extends Controller
             ->whereRaw('DATE(COALESCE(tanggal_selesai, tanggal_kunjungan)) >= ?', [$targetDate->format('Y-m-d')])
             ->get()
             ->map(fn($item) => [
-        'title' => $item->nama_kegiatan,
-        'time' => $item->waktu ?\Carbon\Carbon::parse($item->waktu)->format('H:i') : '—',
-        'date' => $item->tanggal_kunjungan,
-        'location' => $item->tipe_tujuan == 'dalam_negeri' ? ($item->provinsi->nama_provinsi ?? 'Dalam Negeri') : $item->tujuan_luar_negeri,
-        'category' => 'Kunjungan Kerja',
-        'status' => 'Upcoming',
-        'attendees' => $item->anggotaDewan->pluck('nama')->toArray()
-        ])
+                'title' => $item->nama_kegiatan,
+                'time' => $item->waktu ? \Carbon\Carbon::parse($item->waktu)->format('H:i') : '—',
+                'date' => $item->tanggal_kunjungan,
+                'location' => $item->tipe_tujuan == 'dalam_negeri' ? ($item->provinsi->nama_provinsi ?? 'Dalam Negeri') : $item->tujuan_luar_negeri,
+                'category' => 'Kunjungan Kerja',
+                'category_code' => 'KK',
+                'status' => 'Upcoming',
+                'attendees' => $item->anggotaDewan->pluck('nama')->toArray(),
+                'url' => route('kunjungan-kerja.show', $item->id_kunjungan)
+            ])
         );
+
+        // Administrasi Perjalanan Dinas (Disembunyikan dari Agenda Hari Ini)
+        /*
+        $rawTodayEvents = $rawTodayEvents->concat(
+            AdministrasiPerjalananDinas::with(['jenisPerjalananDinas'])
+            ->whereDate('tanggal_mulai', '<=', $targetDate)
+            ->whereDate('tanggal_selesai', '>=', $targetDate)
+            ->get()
+            ->map(fn($item) => [
+                'title' => $item->nama_kegiatan,
+                'time' => $item->waktu ? \Carbon\Carbon::parse($item->waktu)->format('H:i') : '—',
+                'date' => $item->tanggal_mulai,
+                'location' => $item->tujuan,
+                'category' => 'Administrasi Perjalanan Dinas',
+                'category_code' => 'AD',
+                'status' => 'Upcoming',
+                'attendees' => array_map('trim', explode(';', $item->pelaksana))
+            ])
+        );
+        */
 
         $now = now();
         $todayEvents = $rawTodayEvents->map(function ($event) use ($now, $targetDate) {

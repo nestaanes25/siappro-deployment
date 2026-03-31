@@ -1,6 +1,6 @@
 {{-- Header Component --}}
 {{-- Header: Always show full header bar with greeting on mobile & desktop --}}
-<header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+<header class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between" style="z-index: 999; background-color: #ffffff !important;">
     <div class="flex items-center gap-4 flex-1 min-w-0">
         {{-- Hamburger Button (mobile only) --}}
         <button @click="sidebarOpen = !sidebarOpen"
@@ -14,10 +14,26 @@
         {{-- Dynamic Content --}}
         <div class="flex-1 min-w-0">
             @if(request()->routeIs('dashboard'))
-                <h1 class="text-xl font-bold text-gray-900">
-                    Halo, {{ Auth::user()->nama_lengkap }} 🙌
-                </h1>
-                <p class="text-sm text-gray-500">Let's monitor today's workforce</p>
+                @php
+                    $hour = now()->timezone('Asia/Jakarta')->format('H');
+                    if ($hour >= 5 && $hour < 12) {
+                        $greeting = 'Selamat Pagi';
+                    } elseif ($hour >= 12 && $hour < 15) {
+                        $greeting = 'Selamat Siang';
+                    } elseif ($hour >= 15 && $hour < 18) {
+                        $greeting = 'Selamat Sore';
+                    } else {
+                        $greeting = 'Selamat Malam';
+                    }
+                @endphp
+                @if(Auth::user()->role === 'eksternal')
+                    <h1 class="text-xl font-bold text-gray-900">{{ $greeting }} 😊</h1>
+                @else
+                    <h1 class="text-xl font-bold text-gray-900">
+                        {{ $greeting }}, {{ Auth::user()->nama_lengkap }} 😊
+                    </h1>
+                    <p class="text-sm text-gray-500">Let's monitor today's workforce</p>
+                @endif
             @elseif(request()->routeIs('pelayanan-keprotokolan*'))
                 <h1 class="text-xl font-bold text-gray-900">Pelayanan Keprotokolan</h1>
                 <p class="text-sm text-gray-500">Kelola kegiatan dan penugasan protokol</p>
@@ -76,8 +92,8 @@
                 }"
                 class="text-right leading-tight"
             >
-                <p class="text-sm font-bold text-[#3B5286] uppercase tracking-widest" x-text="dateText"></p>
-                <p class="text-xs font-semibold text-[#3B5286]/90 tracking-[0.2em]" x-text="timeText"></p>
+                <p class="text-sm font-bold text-[#3B5286] uppercase tracking-widest leading-7" x-text="dateText"></p>
+                <p class="text-xs font-semibold text-[#3B5286]/90 tracking-[0.2em] leading-5" x-text="timeText"></p>
             </div>
         @endif
 

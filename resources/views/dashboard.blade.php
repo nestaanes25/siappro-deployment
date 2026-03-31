@@ -174,67 +174,91 @@
                     x-transition:leave="transition ease-in duration-200"
                     x-transition:leave-start="opacity-100 translate-y-0"
                     x-transition:leave-end="opacity-0 -translate-y-4"
-                    class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar-y">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Pukul</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Anggota Dewan</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Nama Kegiatan</th>
-                                <th class="px-6 py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tempat</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
+                    class="overflow-x-auto">
+                    <div class="w-full">
+                        {{-- Custom Header Row --}}
+                        <div class="flex items-center bg-gray-50 border-b border-gray-200 px-8 py-3">
+                            <div class="w-28 flex-shrink-0 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Pukul</div>
+                            <div class="w-[25%] flex-shrink-0 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Anggota Dewan</div>
+                            <div class="flex-1 min-w-[200px] pr-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Nama Kegiatan</div>
+                            <div class="w-[20%] flex-shrink-0 pl-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tempat</div>
+                        </div>
+
+                        {{-- Body Rows --}}
+                        <div class="divide-y divide-gray-50 custom-scrollbar-y overflow-y-auto" style="max-height: 247px;">
                             @forelse($todayEvents as $event)
-                                <tr class="group hover:bg-gray-50/50 transition-all duration-200">
-                                    <td class="px-6 py-3.5">
+                                <div class="flex items-center px-8 py-3.5 hover:bg-[#3B5286]/5 transition-all cursor-pointer group/row" 
+                                     onclick="window.location.href='{{ $event['url'] }}'">
+                                    {{-- Pukul --}}
+                                    <div class="w-28 flex-shrink-0">
                                         <div class="flex items-center gap-2.5">
-                                            <div class="w-2.5 h-2.5 rounded-full {{ $event['is_past'] ? 'bg-slate-300' : 'bg-[#3B5286]/30 group-hover:bg-[#3B5286]' }} transition-all border-2 border-white shadow-sm"></div>
-                                            <span class="text-sm font-bold text-slate-700">{{ $event['time'] }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-3.5">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 flex items-center justify-center text-[#3B5286] text-[11px] font-bold shadow-sm">
-                                                {{ substr(!empty($event['attendees']) ? $event['attendees'][0] : 'AD', 0, 1) }}
+                                            <div class="w-2.5 h-2.5 rounded-full {{ $event['is_past'] ? 'bg-slate-300' : 'bg-[#3B5286]/30' }} transition-all border-2 border-white shadow-sm group-hover/row:scale-125"></div>
+                                            @php
+                                                $timeChipClass = $event['is_past'] 
+                                                    ? 'bg-gray-50 text-gray-500 border-gray-100' 
+                                                    : 'bg-blue-50 text-blue-700 border-blue-100';
+                                            @endphp
+                                            <div class="inline-flex items-center justify-center px-3 py-0.5 rounded-full text-[11px] border {{ $timeChipClass }} min-w-[55px] shadow-sm transition-all group-hover/row:shadow-md">
+                                                {{ $event['time'] }}
                                             </div>
-                                            <span class="text-sm font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">
-                                                {{ !empty($event['attendees']) ? implode(', ', array_slice($event['attendees'], 0, 1)) . (count($event['attendees']) > 1 ? ' +'.(count($event['attendees'])-1) : '') : 'Anggota Dewan' }}
-                                            </span>
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-3.5">
-                                        <span class="text-sm font-bold text-slate-800 group-hover:text-[#3B5286] transition-all line-clamp-1">
-                                            {{ $event['title'] }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-3.5">
-                                        <div class="flex items-center gap-2 text-slate-500">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    </div>
+
+                                    {{-- Anggota Dewan --}}
+                                    <div class="w-[25%] flex-shrink-0">
+                                        <div class="flex items-center gap-3 pr-4">
+                                            <div class="flex-1 min-w-0 py-1">
+                                                <div class="whitespace-normal break-words">
+                                                    <span class="text-sm text-slate-600 leading-relaxed group-hover/row:text-slate-900 transition-colors">
+                                                        {{ !empty($event['attendees']) ? implode(', ', $event['attendees']) : 'Anggota Dewan' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Nama Kegiatan --}}
+                                    <div class="flex-1 min-w-[200px] pr-4">
+                                        <div class="flex items-start gap-2 py-1">
+                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 flex-shrink-0 flex items-center justify-center text-[#3B5286] text-[11px] font-bold shadow-sm group-hover/row:border-[#3B5286]/30 group-hover/row:shadow-md transition-all mt-0.5">
+                                                {{ $event['category_code'] }}
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="whitespace-normal break-words">
+                                                    <span class="text-sm text-slate-800 font-medium leading-relaxed group-hover/row:text-[#3B5286] transition-colors">
+                                                        {{ $event['title'] }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Tempat --}}
+                                    <div class="w-[20%] flex-shrink-0 pl-4">
+                                        <div class="flex items-center gap-2 text-slate-500 group-hover/row:text-slate-700 transition-colors">
+                                            <svg class="w-4 h-4 text-gray-400 group-hover/row:text-[#3B5286] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
-                                            <span class="text-sm font-medium">{{ $event['location'] ?: '—' }}</span>
+                                            <span class="text-xs font-medium">{{ $event['location'] ?: '—' }}</span>
                                         </div>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </div>
                             @empty
-                                <tr>
-                                    <td colspan="4" class="px-6 py-12 text-center">
-                                        <div class="flex flex-col items-center">
-                                            <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-3">
-                                                <svg class="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                            </div>
-                                            <p class="text-sm font-bold text-slate-600">Tidak ada kegiatan hari ini</p>
-                                            <p class="text-[12px] text-slate-400 mt-1">Jadwal kegiatan Anda akan muncul di sini</p>
+                                <div class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-3">
+                                            <svg class="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
                                         </div>
-                                    </td>
-                                </tr>
+                                        <p class="text-sm font-bold text-slate-600">Tidak ada kegiatan hari ini</p>
+                                        <p class="text-[12px] text-slate-400 mt-1">Jadwal kegiatan Anda akan muncul di sini</p>
+                                    </div>
+                                </div>
                             @endforelse
-                        </tbody>
-                    </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -276,7 +300,7 @@
                             <option value="asc" {{ request('sort_year') == 'asc' ? 'selected' : '' }}>Lowest to Highest</option>
                             <optgroup label="Tahun">
                                 @foreach(range(date('Y'), 2020) as $y)
-                                    <option value="{{ $y }}" {{ request('sort_year') == $y ? 'selected' : '' }}>Year {{ $y }}</option>
+                                    <option value="{{ $y }}" {{ request('sort_year') == $y ? 'selected' : '' }}>{{ $y }}</option>
                                 @endforeach
                             </optgroup>
                         </select>

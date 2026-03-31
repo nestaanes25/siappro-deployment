@@ -164,7 +164,7 @@
                                             <h3 class="font-bold text-gray-900 text-base group-hover:text-blue-600 transition truncate pr-4">
                                                 {{ $p->nama }}
                                             </h3>
-                                            <p class="text-xs text-gray-500 font-medium">Top Performer • {{ $p->total_count }} Penugasan</p>
+                                            <p class="text-xs text-gray-500 font-medium">{{ $p->total_count }} Penugasan</p>
                                         </div>
                                         <div class="text-right">
                                             <span class="text-2xl font-black text-gray-900 leading-none">{{ $p->total_count }}</span>

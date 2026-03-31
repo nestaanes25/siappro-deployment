@@ -22,6 +22,7 @@ class PelayananKeprotokolan extends Model
         'file_path',
         'created_by',
         'updated_by',
+        'is_seen_by_superadmin',
     ];
 
     protected $casts = [

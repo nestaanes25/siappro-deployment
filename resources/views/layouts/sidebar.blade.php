@@ -2,7 +2,8 @@
 {{-- Usage: @include('layouts.sidebar') inside app.blade.php --}}
 {{-- Alpine.js: expects `sidebarOpen` from parent x-data --}}
 
-<aside class="fixed inset-y-0 left-0 z-30 bg-[#3B5286] text-white flex flex-col transition-all duration-300 ease-in-out lg:translate-x-0 overflow-x-hidden w-72"
+<aside class="fixed inset-y-0 left-0 z-50 bg-[#3B5286] text-white flex flex-col transition-all duration-300 ease-in-out lg:translate-x-0 overflow-x-hidden w-72"
+    style="z-index: 9999;"
     :class="{ 'w-72': desktopSidebarOpen, 'w-20': !desktopSidebarOpen }"
     x-bind:class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
     {{-- Logo Area --}}
@@ -34,7 +35,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z" />
             </svg>
-            <span x-show="desktopSidebarOpen" class="transition-all duration-300">Dashboard</span>
+            <span x-show="desktopSidebarOpen" class="transition-all duration-300">Menu Utama</span>
         </a>
 
         {{-- Pelayanan Keprotokolan --}}
@@ -243,5 +244,5 @@
 <div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300"
     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
     x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0" @click="sidebarOpen = false" class="fixed inset-0 z-20 bg-black/50 lg:hidden">
+    x-transition:leave-end="opacity-0" @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-black/50 lg:hidden" style="z-index: 9998;">
 </div>

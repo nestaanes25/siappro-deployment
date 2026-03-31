@@ -47,10 +47,18 @@ class PelayananKeprotokolanController extends Controller
                 $q->whereYear('tanggal_kegiatan', $request->year);
             }
 
-            // Search Logic
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $q->where(function ($sub) use ($search) {
+            if ($request->filled('id_anggota')) {
+                $q->where(function ($sub) use ($request) {
+                            $sub->whereJsonContains('id_anggota', (string)$request->id_anggota)
+                                ->orWhereJsonContains('id_anggota', (int)$request->id_anggota);
+                        }
+                        );
+                    }
+
+                    // Search Logic
+                    if ($request->filled('search')) {
+                        $search = $request->search;
+                        $q->where(function ($sub) use ($search) {
                             $sub->where('nama_kegiatan', 'like', "%{$search}%")
                                 ->orWhere('tempat', 'like', "%{$search}%")
                                 ->orWhereHas('jenisPelayanan', function ($q) use ($search) {
@@ -100,19 +108,19 @@ class PelayananKeprotokolanController extends Controller
         }
         arsort($totalAnggotaCounts);
         $totalTopIds = array_slice(array_keys($totalAnggotaCounts), 0, 5);
-        $totalBreakdown = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $totalTopIds)->get()->map(function($a) use ($totalAnggotaCounts) {
+        $totalBreakdown = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $totalTopIds)->get()->map(function ($a) use ($totalAnggotaCounts) {
             return [
-                'label' => explode(',', $a->nama)[0],
-                'value' => $totalAnggotaCounts[$a->id_anggota]
+            'label' => explode(',', $a->nama)[0],
+            'value' => $totalAnggotaCounts[$a->id_anggota]
             ];
         })->sortByDesc('value')->values();
 
         $jenisPelayananSummary = MasterJenisPelayanan::withCount([
             'pelayananKeprotokolan as total' => function ($q) use ($applyFilter) {
-                $applyFilter($q);
-            }
+            $applyFilter($q);
+        }
         ])->get()
-        ->map(function ($jenis) use ($applyFilter) {
+            ->map(function ($jenis) use ($applyFilter) {
             // Calculate Anggota Dewan Breakdown for this category
             $records = \App\Models\PelayananKeprotokolan::where('id_jenis_pelayanan', $jenis->id_jenis_pelayanan);
             $applyFilter($records);
@@ -132,42 +140,43 @@ class PelayananKeprotokolanController extends Controller
             }
             arsort($anggotaCounts);
             $topIds = array_slice(array_keys($anggotaCounts), 0, 5);
-            $topAnggota = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $topIds)->get()->map(function($a) use ($anggotaCounts) {
-                return [
+            $topAnggota = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $topIds)->get()->map(function ($a) use ($anggotaCounts) {
+                    return [
                     'label' => explode(',', $a->nama)[0],
                     'value' => $anggotaCounts[$a->id_anggota]
+                    ];
+                }
+                )->sortByDesc('value')->values();
+
+                $jenis->breakdown = $topAnggota;
+
+                $colors = [
+                    ['bg' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'border' => 'border-blue-100', 'icon_bg' => 'from-blue-500 to-blue-600', 'shadow' => 'shadow-blue-500/30', 'text' => 'text-blue-600', 'chip_bg' => 'bg-blue-100'],
+                    ['bg' => 'bg-gradient-to-br from-red-50 to-red-100', 'border' => 'border-red-100', 'icon_bg' => 'from-red-500 to-red-600', 'shadow' => 'shadow-red-500/30', 'text' => 'text-red-600', 'chip_bg' => 'bg-red-100'],
+                    ['bg' => 'bg-gradient-to-br from-green-50 to-green-100', 'border' => 'border-green-100', 'icon_bg' => 'from-green-500 to-green-600', 'shadow' => 'shadow-green-500/30', 'text' => 'text-green-600', 'chip_bg' => 'bg-green-100'],
+                    ['bg' => 'bg-gradient-to-br from-purple-50 to-purple-100', 'border' => 'border-purple-100', 'icon_bg' => 'from-purple-500 to-purple-600', 'shadow' => 'shadow-purple-500/30', 'text' => 'text-purple-600', 'chip_bg' => 'bg-purple-100'],
+                    ['bg' => 'bg-gradient-to-br from-amber-50 to-amber-100', 'border' => 'border-amber-100', 'icon_bg' => 'from-amber-500 to-amber-600', 'shadow' => 'shadow-amber-500/30', 'text' => 'text-amber-600', 'chip_bg' => 'bg-amber-100'],
+                    ['bg' => 'bg-gradient-to-br from-indigo-50 to-indigo-100', 'border' => 'border-indigo-100', 'icon_bg' => 'from-indigo-500 to-indigo-600', 'shadow' => 'shadow-indigo-500/30', 'text' => 'text-indigo-600', 'chip_bg' => 'bg-indigo-100'],
+                    ['bg' => 'bg-gradient-to-br from-teal-50 to-teal-100', 'border' => 'border-teal-100', 'icon_bg' => 'from-teal-500 to-teal-600', 'shadow' => 'shadow-teal-500/30', 'text' => 'text-teal-600', 'chip_bg' => 'bg-teal-100'],
+                    ['bg' => 'bg-gradient-to-br from-pink-50 to-pink-100', 'border' => 'border-pink-100', 'icon_bg' => 'from-pink-500 to-pink-600', 'shadow' => 'shadow-pink-500/30', 'text' => 'text-pink-600', 'chip_bg' => 'bg-pink-100'],
                 ];
-            })->sortByDesc('value')->values();
 
-            $jenis->breakdown = $topAnggota;
+                $colorIndex = ($jenis->id_jenis_pelayanan - 1) % count($colors);
+                $jenis->style = $colors[$colorIndex];
 
-            $colors = [
-                ['bg' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'border' => 'border-blue-100', 'icon_bg' => 'from-blue-500 to-blue-600', 'shadow' => 'shadow-blue-500/30', 'text' => 'text-blue-600', 'chip_bg' => 'bg-blue-100'],
-                ['bg' => 'bg-gradient-to-br from-red-50 to-red-100', 'border' => 'border-red-100', 'icon_bg' => 'from-red-500 to-red-600', 'shadow' => 'shadow-red-500/30', 'text' => 'text-red-600', 'chip_bg' => 'bg-red-100'],
-                ['bg' => 'bg-gradient-to-br from-green-50 to-green-100', 'border' => 'border-green-100', 'icon_bg' => 'from-green-500 to-green-600', 'shadow' => 'shadow-green-500/30', 'text' => 'text-green-600', 'chip_bg' => 'bg-green-100'],
-                ['bg' => 'bg-gradient-to-br from-purple-50 to-purple-100', 'border' => 'border-purple-100', 'icon_bg' => 'from-purple-500 to-purple-600', 'shadow' => 'shadow-purple-500/30', 'text' => 'text-purple-600', 'chip_bg' => 'bg-purple-100'],
-                ['bg' => 'bg-gradient-to-br from-amber-50 to-amber-100', 'border' => 'border-amber-100', 'icon_bg' => 'from-amber-500 to-amber-600', 'shadow' => 'shadow-amber-500/30', 'text' => 'text-amber-600', 'chip_bg' => 'bg-amber-100'],
-                ['bg' => 'bg-gradient-to-br from-indigo-50 to-indigo-100', 'border' => 'border-indigo-100', 'icon_bg' => 'from-indigo-500 to-indigo-600', 'shadow' => 'shadow-indigo-500/30', 'text' => 'text-indigo-600', 'chip_bg' => 'bg-indigo-100'],
-                ['bg' => 'bg-gradient-to-br from-teal-50 to-teal-100', 'border' => 'border-teal-100', 'icon_bg' => 'from-teal-500 to-teal-600', 'shadow' => 'shadow-teal-500/30', 'text' => 'text-teal-600', 'chip_bg' => 'bg-teal-100'],
-                ['bg' => 'bg-gradient-to-br from-pink-50 to-pink-100', 'border' => 'border-pink-100', 'icon_bg' => 'from-pink-500 to-pink-600', 'shadow' => 'shadow-pink-500/30', 'text' => 'text-pink-600', 'chip_bg' => 'bg-pink-100'],
-            ];
+                $jenis->label = match ($jenis->nama_jenis) {
+                        'Sidang Kabinet' => 'Sidang',
+                        'Pelayanan Keprotokolan Bandara' => 'Bandara',
+                        'Pelayanan Keprotokolan Acara Dalam Kota' => 'Lokal',
+                        'Audiensi Dengan Pimpinan DPRD' => 'Audiensi',
+                        'Audiensi Kepada RI 1' => 'Aud. RI 1',
+                        'Audiensi Kepada RI 2' => 'Aud. RI 2',
+                        'Penerimaan Kunjungan Kerja' => 'Kunjungan',
+                        default => 'Umum',
+                    };
 
-            $colorIndex = ($jenis->id_jenis_pelayanan - 1) % count($colors);
-            $jenis->style = $colors[$colorIndex];
-
-            $jenis->label = match ($jenis->nama_jenis) {
-                    'Sidang Kabinet' => 'Sidang',
-                    'Pelayanan Keprotokolan Bandara' => 'Bandara',
-                    'Pelayanan Keprotokolan Acara Dalam Kota' => 'Lokal',
-                    'Audiensi Dengan Pimpinan DPRD' => 'Audiensi',
-                    'Audiensi Kepada RI 1' => 'Aud. RI 1',
-                    'Audiensi Kepada RI 2' => 'Aud. RI 2',
-                    'Penerimaan Kunjungan Kerja' => 'Kunjungan',
-                    default => 'Umum',
-                };
-
-            return $jenis;
-        });
+                return $jenis;
+            });
 
         $totalProtokol = MasterPetugasProtokol::count();
 
@@ -191,7 +200,32 @@ class PelayananKeprotokolanController extends Controller
             }
 
             if ($request->export == 'pdf') {
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pelayanan-keprotokolan.pdf', compact('kegiatan', 'columns'));
+                // Increase memory limit for DomPDF processing
+                @ini_set('memory_limit', '512M');
+                
+                $subTitleParts = [];
+                if($request->filled('start_date') && $request->filled('end_date')) {
+                    $subTitleParts[] = "Periode: " . \Carbon\Carbon::parse($request->start_date)->isoFormat('D MMMM Y') . " - " . \Carbon\Carbon::parse($request->end_date)->isoFormat('D MMMM Y');
+                } elseif($request->filled('date')) {
+                    $subTitleParts[] = "Tanggal: " . \Carbon\Carbon::parse($request->date)->isoFormat('D MMMM Y');
+                } elseif($request->filled('month')) {
+                    $subTitleParts[] = "Bulan: " . \Carbon\Carbon::parse($request->month)->isoFormat('MMMM Y');
+                } elseif($request->filled('year')) {
+                    $subTitleParts[] = "Tahun: " . $request->year;
+                }
+
+                if($request->filled('search')) {
+                    $subTitleParts[] = "Kategori/Cari: " . $request->search;
+                }
+                
+                if($request->filled('id_anggota')) {
+                    $anggota = MasterAnggotaDewan::find($request->id_anggota);
+                    if($anggota) $subTitleParts[] = "Anggota: " . $anggota->nama;
+                }
+
+                $subTitle = empty($subTitleParts) ? 'Semua Data' : implode(' | ', $subTitleParts);
+
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pelayanan-keprotokolan.pdf', compact('kegiatan', 'columns', 'subTitle'));
                 $pdf->setPaper('a4', 'landscape');
                 return $pdf->download('laporan-keprotokolan.pdf');
             }
@@ -200,12 +234,15 @@ class PelayananKeprotokolanController extends Controller
         // 6. Pagination
         $kegiatan = $query->paginate(10)->onEachSide(1)->withQueryString();
 
+        $masterAnggota = MasterAnggotaDewan::where('is_active', 1)->orderBy('nama')->get();
+
         return view('pelayanan-keprotokolan.index', compact(
             'kegiatan',
             'totalKegiatan',
             'totalBreakdown',
             'totalProtokol',
-            'jenisPelayananSummary'
+            'jenisPelayananSummary',
+            'masterAnggota'
         ));
     }
 
@@ -263,6 +300,7 @@ class PelayananKeprotokolanController extends Controller
             'id_petugas' => $validated['petugas_id'] ?? [], // Simpan sebagai array JSON
             'file_path' => $filePath,
             'created_by' => Auth::user()->id_user ?? Auth::id(),
+            'updated_by' => Auth::user()->id_user ?? Auth::id(),
         ]);
 
         return redirect()->route('pelayanan-keprotokolan')
@@ -276,6 +314,11 @@ class PelayananKeprotokolanController extends Controller
     {
         $item = PelayananKeprotokolan::with(['jenisPelayanan', 'creator', 'updater'])
             ->findOrFail($id);
+
+        if (Auth::user()->role === 'super_admin' && !$item->is_seen_by_superadmin) {
+            $item->is_seen_by_superadmin = true;
+            $item->save();
+        }
 
         return view('pelayanan-keprotokolan.show', compact('item'));
     }
@@ -332,6 +375,10 @@ class PelayananKeprotokolanController extends Controller
             'tempat' => $validated['tempat'] ?? null,
             'updated_by' => Auth::id(),
         ];
+
+        if (Auth::user()->role === 'admin') {
+            $updateData['is_seen_by_superadmin'] = false;
+        }
 
         // Only update petugas if user is super admin (since field is hidden for others)
         if (auth()->user()->isSuperAdmin()) {

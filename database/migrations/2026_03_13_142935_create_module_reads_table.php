@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('module_reads', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('id_user');
-            $table->string('module_name');
-            $table->timestamp('last_read_at')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('module_reads')) {
+            Schema::create('module_reads', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('id_user');
+                $table->string('module_name');
+                $table->timestamp('last_read_at')->nullable();
+                $table->timestamps();
 
-            $table->unique(['id_user', 'module_name']);
-        });
+                $table->unique(['id_user', 'module_name']);
+            });
+        }
     }
 
     /**

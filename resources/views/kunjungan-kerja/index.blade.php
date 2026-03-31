@@ -84,8 +84,8 @@
                     class="flex overflow-x-auto pb-4 gap-4 no-scrollbar cursor-grab active:cursor-grabbing select-none">
 
                 {{-- 1. Total Kunjungan (Biru) --}}
-                <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false"
-                    class="relative w-60 flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200/50 rounded-xl p-3 border border-blue-200 flex justify-between hover:shadow-md transition">
+                <a href="{{ route('kunjungan-kerja', request()->except(['search', 'page'])) }}"
+                    class="block relative w-60 flex-shrink-0 bg-gradient-to-br from-blue-100 to-blue-200/50 rounded-xl p-3 border border-blue-200 flex justify-between hover:shadow-md transition cursor-pointer hover:border-blue-300">
                     <div>
                         <div
                             class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 mb-3">
@@ -100,46 +100,12 @@
                             Total Kunjungan
                         </div>
                     </div>
-
-
-
-                    {{-- Popover Breakdown --}}
-                    <div x-show="open" x-cloak 
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 translate-y-2"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        class="absolute z-[100] top-full mt-2 left-0 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 transform origin-top">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Top Anggota Dewan</h4>
-                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Total {{ $totalKegiatan }}</span>
-                        </div>
-                        <div class="space-y-2">
-                            @forelse($totalBreakdown as $b)
-                                <div class="flex items-center gap-3">
-                                    <div class="flex-1">
-                                        <div class="flex justify-between mb-1">
-                                            <span class="text-[10px] font-bold text-gray-700 truncate w-32">{{ $b['label'] }}</span>
-                                            <span class="text-[10px] font-black text-blue-600">{{ $b['value'] }}</span>
-                                        </div>
-                                        <div class="w-full bg-gray-50 rounded-full h-1.5 overflow-hidden border border-gray-100">
-                                            <div class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width: {{ $totalKegiatan > 0 ? ($b['value'] / $totalKegiatan) * 100 : 0 }}%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <p class="text-[10px] text-gray-400 text-center py-2">Tidak ada data breakdown</p>
-                            @endforelse
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-gray-50 flex justify-center">
-                            <p class="text-[9px] font-semibold text-gray-400 italic">Berdasarkan Filter Saat Ini</p>
-                        </div>
-                    </div>
-                </div>
+                </a>
 
                 {{-- 2. Dynamic Jenis Kunjungan Cards --}}
                 @foreach($jenisKunjunganSummary as $jenis)
-                    <div x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false"
-                        class="relative w-60 flex-shrink-0 {{ $jenis->style['bg'] }} rounded-xl p-3 border {{ $jenis->style['border'] }} flex justify-between hover:shadow-md transition">
+                    <a href="{{ route('kunjungan-kerja', array_merge(request()->except('page'), ['search' => $jenis->nama_jenis])) }}"
+                        class="block relative w-60 flex-shrink-0 {{ $jenis->style['bg'] }} rounded-xl p-3 border {{ $jenis->style['border'] }} flex justify-between hover:shadow-md transition cursor-pointer hover:-translate-y-1">
                         <div>
                             <div
                                 class="w-10 h-10 rounded-lg bg-gradient-to-br {{ $jenis->style['icon_bg'] }} flex items-center justify-center text-white shadow-lg {{ $jenis->style['shadow'] }} mb-3">
@@ -164,46 +130,11 @@
 
                             @endif
                         </div>
-
-                        {{-- Popover Breakdown --}}
-                        @if(count($jenis->breakdown ?? []) > 0)
-                        <div x-show="open" x-cloak 
-                            x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 translate-y-2"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            class="absolute z-[100] top-full mt-2 left-0 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 transform origin-top">
-                            <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Top Anggota Dewan</h4>
-                                <span class="text-[10px] font-bold {{ $jenis->style['text'] }} {{ $jenis->style['chip_bg'] }} px-2 py-0.5 rounded-full">Total {{ $jenis->total }}</span>
-                            </div>
-                            <div class="space-y-2">
-                                @forelse($jenis->breakdown as $b)
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex-1">
-                                            <div class="flex justify-between mb-1">
-                                                <span class="text-[10px] font-bold text-gray-700 truncate w-32">{{ $b['label'] }}</span>
-                                                <span class="text-[10px] font-black {{ $jenis->style['text'] }}">{{ $b['value'] }}</span>
-                                            </div>
-                                            <div class="w-full bg-gray-50 rounded-full h-1.5 overflow-hidden border border-gray-100">
-                                                <div class="h-full rounded-full transition-all duration-1000" 
-                                                    style="width: {{ $jenis->total > 0 ? ($b['value'] / $jenis->total) * 100 : 0 }}%; background-color: currentColor; color: {{ str_replace('text-', '', $jenis->style['text']) }}"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <p class="text-[10px] text-gray-400 text-center py-2">Tidak ada data breakdown</p>
-                                @endforelse
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-50 flex justify-center">
-                                <p class="text-[9px] font-semibold text-gray-400 italic">Berdasarkan Filter Saat Ini</p>
-                            </div>
-                        </div>
-                        @endif
-                    </div>
+                    </a>
                 @endforeach
 
                 {{-- 3. Petugas Protokol (Ungu) --}}
-                <div class="w-60 flex-shrink-0 bg-gradient-to-br from-purple-100 to-purple-200/50 rounded-xl p-3 border border-purple-200 flex justify-between hover:shadow-md transition">
+                <a href="{{ route('penugasan-protokol') }}" class="block w-60 flex-shrink-0 bg-gradient-to-br from-purple-100 to-purple-200/50 rounded-xl p-3 border border-purple-200 flex justify-between hover:shadow-md transition cursor-pointer hover:border-purple-300">
                     <div>
                         <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30 mb-3">
                             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -213,7 +144,7 @@
                         <div class="text-2xl font-bold text-gray-900">{{ number_format($totalProtokol ?? 0) }}</div>
                         <div class="text-sm text-gray-500 mt-1">Petugas Protokol</div>
                     </div>
-                </div>
+                </a>
 
             </div>
         </div>
@@ -328,6 +259,19 @@
                                             </select>
                                         </div>
 
+                                        {{-- Filter Anggota Dewan --}}
+                                        <div class="mt-4 pt-4 border-t border-gray-100">
+                                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Filter Anggota Dewan</label>
+                                            <select id="filter-anggota" name="id_anggota" class="w-full h-10">
+                                                <option value="">Semua Anggota</option>
+                                                @foreach($masterAnggota as $anggota)
+                                                    <option value="{{ $anggota->id_anggota }}" {{ request('id_anggota') == $anggota->id_anggota ? 'selected' : '' }}>
+                                                        {{ $anggota->nama }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
                                         <div class="mt-3 flex gap-2">
                                             <a href="{{ route('kunjungan-kerja') }}"
                                                 class="flex-1 px-3 py-2 text-xs font-medium text-center text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
@@ -362,8 +306,8 @@
                                 x-transition:leave="transition ease-in duration-200"
                                 x-transition:leave-start="opacity-100"
                                 x-transition:leave-end="opacity-0"
-                                class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-                                style="display: none;">
+                                class="fixed inset-0 bg-black/50 z-[1050] flex items-center justify-center p-4 lg:p-0"
+                                style="display: none; z-index: 9999;">
                                 
                                 {{-- Modal Content --}}
                                 <div @click.outside="exportOpen = false"
@@ -395,6 +339,7 @@
                                         @if(request('month')) <input type="hidden" name="month" value="{{ request('month') }}"> @endif
                                         @if(request('year')) <input type="hidden" name="year" value="{{ request('year') }}"> @endif
                                         @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
+                                        @if(request('id_anggota')) <input type="hidden" name="id_anggota" value="{{ request('id_anggota') }}"> @endif
                                         <input type="hidden" name="export" x-model="exportFormat">
 
                                         <div class="p-5 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
@@ -529,7 +474,7 @@
                                 <th class="pl-6 pr-3 py-3 text-xs font-semibold text-gray-500 uppercase text-center w-[10%]">
                                     Tanggal
                                 </th>
-                                <th class="px-3 py-3 text-xs font-semibold text-gray-500 uppercase text-center w-[7%]">Pukul
+                                <th class="hidden px-3 py-3 text-xs font-semibold text-gray-500 uppercase text-center w-[7%]">Pukul
                                 </th>
 
                                 <th class="px-3 py-3 text-xs font-semibold text-gray-500 uppercase text-left w-[12%]">Anggota Dewan
@@ -564,7 +509,7 @@
                                     <td class="px-3 py-4">
                                         <div class="h-4 bg-gray-200 rounded w-16 mx-auto"></div>
                                     </td>
-                                    <td class="px-3 py-4">
+                                    <td class="hidden px-3 py-4">
                                         <div class="h-6 bg-gray-200 rounded-full w-12 mx-auto"></div>
                                     </td>
                                     <td class="px-3 py-4">
@@ -613,7 +558,12 @@
                             x-transition:enter-start="opacity-0 transform scale-98"
                             x-transition:enter-end="opacity-100 transform scale-100">
                             @forelse($kunjungan as $item)
-                                <tr class="hover:bg-[#EFF6FF] transition">
+                                @php
+                                    $isBoldRow = Auth::user()->role === 'super_admin' && optional($item->updater ?? $item->creator)->role === 'admin' && !$item->is_seen_by_superadmin;
+                                    $fontWeight = $isBoldRow ? 'font-bold' : 'font-normal';
+                                    $boldTextClass = $isBoldRow ? 'font-bold text-gray-900' : 'font-normal text-gray-700';
+                                @endphp
+                                <tr class="hover:bg-[#EFF6FF] transition {{ $isBoldRow ? 'bg-blue-50/30' : '' }}">
                                     {{-- Tanggal --}}
                                     <td class="px-3 py-4 whitespace-nowrap text-center text-xs">
                                         @php
@@ -625,7 +575,7 @@
                                             $chipClass = $isToday ? 'bg-blue-50 text-blue-700 border-blue-100' : ($isFuture ? 'bg-red-50 text-red-700 border-red-100' : 'text-gray-500 italic');
                                             $hasBg = $isToday || $isFuture;
                                         @endphp
-                                        <div class="inline-block px-2 py-1 rounded-lg font-semibold {{ $hasBg ? $chipClass . ' border' : $chipClass }}">
+                                        <div class="inline-block px-2 py-1 rounded-lg {{ $fontWeight }} {{ $hasBg ? $chipClass . ' border' : $chipClass }}">
                                             @if($item->tanggal_kunjungan)
                                                 {{ $item->tanggal_kunjungan->format('d/m/y') }}
                                                 @if($item->tanggal_selesai && $item->tanggal_selesai->ne($item->tanggal_kunjungan))
@@ -638,9 +588,9 @@
                                     </td>
 
                                     {{-- Pukul --}}
-                                    <td class="px-3 py-4 text-center">
+                                    <td class="hidden px-3 py-4 text-center">
                                         <span
-                                            class="inline-block px-3 py-1 rounded-full text-xs font-medium {{ $hasBg ? $chipClass . ' border' : $chipClass }} text-center min-w-[60px]">
+                                            class="inline-block px-3 py-1 rounded-full text-xs {{ $fontWeight }} {{ $hasBg ? $chipClass . ' border' : $chipClass }} text-center min-w-[60px]">
                                             {{ $item->waktu ? \Carbon\Carbon::parse($item->waktu)->format('H:i') : '-' }}
                                         </span>
                                     </td>
@@ -651,10 +601,10 @@
                                         @if($item->anggotaDewan->count() > 0)
                                             <div class="flex flex-col gap-1">
                                                 @foreach($item->anggotaDewan->take(2) as $anggota)
-                                                    <div class="text-sm font-medium text-gray-900">{{ $anggota->nama }}</div>
+                                                    <div class="text-sm {{ $boldTextClass }}">{{ $anggota->nama }}</div>
                                                 @endforeach
                                                 @if($item->anggotaDewan->count() > 2)
-                                                    <p class="text-[10px] text-gray-400 font-medium">+{{ $item->anggotaDewan->count() - 2 }} lainnya</p>
+                                                    <p class="text-[10px] text-gray-400 font-normal">+{{ $item->anggotaDewan->count() - 2 }} lainnya</p>
                                                 @endif
                                             </div>
                                         @else
@@ -667,10 +617,10 @@
                                         @if(!empty($item->rombongan) && count($item->rombongan) > 0)
                                             <div class="flex flex-col gap-1">
                                                 @foreach(array_slice($item->rombongan, 0, 2) as $rombongan)
-                                                    <div class="text-sm font-medium text-gray-900">{{ $rombongan }}</div>
+                                                    <div class="text-sm {{ $boldTextClass }}">{{ $rombongan }}</div>
                                                 @endforeach
                                                 @if(count($item->rombongan) > 2)
-                                                    <p class="text-[10px] text-gray-400 font-medium">+{{ count($item->rombongan) - 2 }} lainnya</p>
+                                                    <p class="text-[10px] text-gray-400 font-normal">+{{ count($item->rombongan) - 2 }} lainnya</p>
                                                 @endif
                                             </div>
                                         @else
@@ -680,17 +630,17 @@
 
                                     {{-- Nama Kegiatan --}}
                                     <td class="px-3 py-4 text-left">
-                                        <p class="font-semibold text-gray-900 line-clamp-3" title="{{ $item->nama_kegiatan }}">{{ $item->nama_kegiatan }}</p>
+                                        <p class="{{ $boldTextClass }} line-clamp-3" title="{{ $item->nama_kegiatan }}">{{ $item->nama_kegiatan }}</p>
                                     </td>
 
                                     {{-- Tujuan --}}
                                     <td class="px-3 py-4 text-left">
-                                        <div class="flex items-center gap-1.5 text-gray-700">
+                                        <div class="flex items-center gap-1.5 {{ $boldTextClass }}">
                                             <svg class="w-3.5 h-3.5 text-red-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
                                             </svg>
-                                            <span class="text-sm font-medium">
+                                            <span class="text-sm">
                                                 @if($item->tipe_tujuan == 'dalam_negeri')
                                                     {{ $item->provinsi->nama_provinsi ?? '-' }}
                                                 @else
@@ -711,11 +661,11 @@
                                                                 <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />
                                                             </svg>
                                                         </div>
-                                                        <span class="text-sm font-medium text-gray-900">{{ $petugas->nama }}</span>
+                                                        <span class="text-sm {{ $boldTextClass }}">{{ $petugas->nama }}</span>
                                                     </div>
                                                 @endforeach
                                                 @if($item->petugas->count() > 2)
-                                                    <p class="text-[10px] text-gray-400 pl-11 font-medium">+{{ $item->petugas->count() - 2 }} lainnya</p>
+                                                    <p class="text-[10px] text-gray-400 pl-11 font-normal">+{{ $item->petugas->count() - 2 }} lainnya</p>
                                                 @endif
                                             </div>
                                         @else
@@ -725,7 +675,7 @@
 
                                     {{-- Jenis --}}
                                     <td class="px-3 py-4 text-left">
-                                        <span class="text-sm text-gray-600 leading-tight block">
+                                        <span class="text-sm {{ $boldTextClass }} leading-tight block">
                                             {{ $item->jenisKunjungan?->nama_jenis ?? '-' }}
                                         </span>
                                     </td>
@@ -761,7 +711,7 @@
                                         <td class="px-3 py-4">
                                             <div class="flex items-center justify-between gap-4">
                                                 <div class="text-left">
-                                                    <p class="text-sm font-semibold text-gray-900">
+                                                    <p class="text-sm {{ $boldTextClass }}">
                                                         {{ $item->updater->nama_lengkap ?? $item->creator->nama_lengkap ?? 'System' }}
                                                     </p>
                                                     <p class="text-xs text-gray-500">
@@ -924,4 +874,17 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Tom Select for filter
+            new TomSelect('#filter-anggota', {
+                placeholder: 'Cari Anggota Dewan...',
+                allowEmptyOption: true,
+                maxItems: 1,
+            });
+        });
+    </script>
+    @endpush
 </x-app-layout>
