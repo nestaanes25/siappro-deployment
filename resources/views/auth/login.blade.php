@@ -12,7 +12,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('login') }}" x-data="{ showPassword: false }">
+    <form method="POST" action="{{ route('login') }}" x-data="{ showPassword: false }" autocomplete="off">
         @csrf
 
         {{-- Username --}}
@@ -27,7 +27,7 @@
                     </svg>
                 </div>
                 <input id="username" name="username" type="text" value="{{ old('username') }}" required autofocus
-                    autocomplete="username" placeholder="Enter your username"
+                    autocomplete="off" placeholder="Enter your username"
                     class="block w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#354A79]/20 focus:border-[#354A79] transition @error('username') border-red-500 @enderror">
             </div>
             @error('username')
@@ -47,7 +47,8 @@
                     </svg>
                 </div>
                 <input id="password" name="password" :type="showPassword ? 'text' : 'password'" required
-                    autocomplete="current-password" placeholder="Enter your password"
+                    readonly onfocus="this.removeAttribute('readonly');"
+                    autocomplete="new-password" placeholder="Enter your password"
                     class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#354A79]/20 focus:border-[#354A79] transition @error('password') border-red-500 @enderror">
                 <button type="button" @click="showPassword = !showPassword"
                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition focus:outline-none">

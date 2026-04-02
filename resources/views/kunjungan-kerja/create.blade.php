@@ -10,7 +10,7 @@
 
         {{-- Form Section --}}
         <div class="bg-white rounded-b-xl shadow-lg p-8">
-            <form action="{{ route('kunjungan-kerja.store') }}" method="POST" enctype="multipart/form-data" 
+            <form action="{{ route('kunjungan-kerja.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off"
                 x-data="{ 
                     jenisKunjungan: '{{ old('id_jenis_kunjungan', '') }}',
                     isLuarNegeri() { return this.jenisKunjungan == '2' || this.jenisKunjungan == '4'; },

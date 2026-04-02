@@ -10,7 +10,7 @@
 
         {{-- Form Section --}}
         <div class="bg-white rounded-b-xl shadow-lg">
-            <form action="{{ route('management-user.store') }}" method="POST" class="p-8 space-y-6"
+            <form action="{{ route('management-user.store') }}" method="POST" class="p-8 space-y-6" autocomplete="off">
                 x-data="{ 
                     password: '',
                     showPw: false,
@@ -32,7 +32,7 @@
                     </label>
                     <input type="text" name="nama_lengkap" id="nama_lengkap" value="{{ old('nama_lengkap') }}"
                         class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="Masukkan nama lengkap" required>
+                        placeholder="Masukkan nama lengkap" required autocomplete="off">
                     @error('nama_lengkap')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -48,7 +48,7 @@
                     </label>
                     <input type="text" name="username" id="username" value="{{ old('username') }}"
                         class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="Contoh: budi_santoso" required>
+                        placeholder="Contoh: budi_santoso" required autocomplete="off">
                     @error('username')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -116,8 +116,9 @@
                         </label>
                         <div class="relative">
                             <input :type="showPw ? 'text' : 'password'" name="password" id="password" x-model="password"
+                                readonly onfocus="this.removeAttribute('readonly');"
                                 class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pr-10"
-                                placeholder="Min. 8 karakter" required>
+                                placeholder="Min. 8 karakter" required autocomplete="new-password">
                             <button type="button" @click="showPw = !showPw"
                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
                                 <svg x-show="!showPw" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,8 +143,9 @@
                         </label>
                         <div class="relative">
                             <input :type="showConfirm ? 'text' : 'password'" name="password_confirmation" id="password_confirmation"
+                                readonly onfocus="this.removeAttribute('readonly');"
                                 class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pr-10"
-                                placeholder="Ulangi password" required>
+                                placeholder="Ulangi password" required autocomplete="new-password">
                             <button type="button" @click="showConfirm = !showConfirm"
                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
                                 <svg x-show="!showConfirm" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

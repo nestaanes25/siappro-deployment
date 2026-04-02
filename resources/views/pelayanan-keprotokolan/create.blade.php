@@ -10,7 +10,7 @@
 
         {{-- Form Section --}}
         <div class="bg-white rounded-b-xl shadow-lg p-8">
-            <form action="{{ route('pelayanan-keprotokolan.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form action="{{ route('pelayanan-keprotokolan.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" autocomplete="off">
                 @csrf
 
                 <div class="space-y-6">

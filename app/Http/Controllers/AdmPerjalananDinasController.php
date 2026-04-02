@@ -52,19 +52,21 @@ class AdmPerjalananDinasController extends Controller
             if ($request->filled('search')) {
                 $search = $request->search;
                 $q->where(function ($sub) use ($search) {
-                            $sub->where('nama_kegiatan', 'like', "%{$search}%")
-                                ->orWhere('tujuan', 'like', "%{$search}%")
-                                ->orWhere('pelaksana', 'like', "%{$search}%")
-                                ->orWhereHas('jenisPerjalananDinas', function ($q) use ($search) {
-                        $q->where('nama_jenis', 'like', "%{$search}%");
+                    $sub->where('nama_kegiatan', 'like', "%{$search}%")
+                        ->orWhere('tujuan', 'like', "%{$search}%")
+                        ->orWhere('pelaksana', 'like', "%{$search}%")
+                        ->orWhereHas('jenisPerjalananDinas', function ($q) use ($search) {
+                            $q->where('nama_jenis', 'like', "%{$search}%");
+                        });
+
+                    // Search names in JSON field id_petugas
+                    $matchingPetugasIds = \App\Models\MasterPetugasProtokol::where('nama', 'like', "%{$search}%")
+                        ->pluck('id_petugas')->toArray();
+                    foreach ($matchingPetugasIds as $id) {
+                        $sub->orWhereJsonContains('id_petugas', (string)$id)
+                            ->orWhereJsonContains('id_petugas', (int)$id);
                     }
-                    )
-                        ->orWhereHas('petugas', function ($q) use ($search) {
-                        $q->where('nama', 'like', "%{$search}%");
-                    }
-                    );
-                }
-                );
+                });
             }
         };
 

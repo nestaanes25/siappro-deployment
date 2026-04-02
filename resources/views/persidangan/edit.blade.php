@@ -10,7 +10,7 @@
 
         {{-- Form Section --}}
         <div class="bg-white rounded-b-xl shadow-lg p-4 md:p-8">
-            <form action="{{ route('persidangan.update', $item->id_persidangan) }}" method="POST" enctype="multipart/form-data">
+            <form autocomplete="off" action="{{ route('persidangan.update', $item->id_persidangan) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 

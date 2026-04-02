@@ -10,7 +10,7 @@
 
         {{-- Form Section --}}
         <div class="bg-white rounded-b-xl shadow-lg p-8">
-            <form action="{{ route('kunjungan-kerja.update', $item->id_kunjungan) }}" method="POST" enctype="multipart/form-data" 
+            <form autocomplete="off" action="{{ route('kunjungan-kerja.update', $item->id_kunjungan) }}" method="POST" enctype="multipart/form-data" 
                 x-data="{ 
                     jenisKunjungan: '{{ old('id_jenis_kunjungan', $item->id_jenis_kunjungan) }}',
                     isLuarNegeri() { return this.jenisKunjungan == '2' || this.jenisKunjungan == '4'; },

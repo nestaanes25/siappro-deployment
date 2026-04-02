@@ -13,7 +13,7 @@
                     <p class="mt-1 text-sm text-blue-200">Ubah data pengguna.</p>
                 </div>
 
-                <form action="{{ route('management-user.update', $user->id_user) }}" method="POST" class="p-6 space-y-6">
+                <form autocomplete="off" action="{{ route('management-user.update', $user->id_user) }}" method="POST" class="p-6 space-y-6">
                     @csrf
                     @method('PUT')
 
