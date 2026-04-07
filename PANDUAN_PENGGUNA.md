@@ -33,10 +33,19 @@ SIAPPRO adalah aplikasi berbasis web yang digunakan untuk mengelola data operasi
 ## 3. Cara Login & Navigasi
 1. Akses link SIAPPRO.
 2. Masukkan **Username** dan **Password** Anda.
+   ![Halaman Login](docs/Login.png)
 3. Gunakan **Sidebar (Menu Samping)** untuk berpindah antar modul.
+   ![Sidebar Menu](docs/Sidebar.png)
+
 4. **Dashboard / Menu Utama:**
    *   Menampilkan ringkasan agenda kegiatan hari ini.
    *   **Fitur Card:** Anda dapat mengklik **Kartu Jumlah Kegiatan** (seperti Total Kegiatan, Bandara, dll) untuk langsung menuju ke daftar data yang sudah terfilter otomatis sesuai kategori tersebut.
+
+````carousel
+![Dashboard Utama](docs/Menu%20utama.png)
+<!-- slide -->
+![Fitur Card Shortcut](docs/Card%20Pelayanan%20Keprotokolan.png)
+````
 
 ---
 
@@ -60,7 +69,9 @@ SIAPPRO adalah aplikasi berbasis web yang digunakan untuk mengelola data operasi
 ### A. Cara Umum Mengelola Data (Berlaku untuk Semua Modul)
 Untuk setiap modul di bawah ini, cara mengelola datanya adalah sebagai berikut:
 1.  **Tambah Data:** Klik tombol **"Tambah Data"** atau ikon **[+]**.
+    ![Tombol Tambah Kegiatan](docs/Tampilan%20tambah%20kegiatan.png)
 2.  **Filter/Cari:** Gunakan tombol **Filter** untuk menyaring data berdasarkan kategori atau tanggal.
+    ![Fitur Filter Data](docs/Tampilan%20filter.png)
 3.  **Aksi (Edit/Hapus):**
     *   Cari baris data yang ingin diubah.
     *   Klik **Ikon Titik Tiga (⋮)** di kolom paling kanan.
@@ -80,6 +91,8 @@ Modul ini mencatat seluruh aktivitas pelayanan protokol terhadap pimpinan atau t
 *   **Data Utama:** Tanggal, Pukul, Anggota Dewan, Nama Kegiatan, Tempat, Protokol (Petugas), dan Jenis Kegiatan (Dalam Kota/Bandara/Dsb).
 *   **Penting:** Pastikan memilih **Jenis Kegiatan** yang sesuai agar kategori laporan di dashboard akurat.
 
+![Halaman Pelayanan Keprotokolan](docs/Tampilan%20Pelayanan%20Keprotokolan.png)
+
 ### D. Modul Kunjungan Kerja
 Modul untuk mencatat agenda kunjungan kerja baik dari luar daerah (Tamu) maupun kunjungan keluar (Internal).
 *   **Data Utama:** Tanggal, Instansi, Jumlah Orang, Maksud Tujuan, dan Lokasi.
@@ -90,6 +103,8 @@ Modul khusus untuk mengelola administrasi surat menyurat atau logistik perjalana
 *   **Data Utama:** Nama Personel, Tujuan, Tanggal Berangkat/Pulang, dan Status SPPD.
 *   **Fitur:** Digunakan sebagai dasar pengecekan administrasi sebelum pencetakan dokumen dinas.
 
+![Halaman Administrasi Perjalanan Dinas](docs/Administrasi%20perjalanan%20dinas.png)
+
 ### F. Modul Penugasan Protokol (Monitoring)
 Modul ini berfungsi sebagai dashboard analisis untuk memantau beban kerja seluruh tim protokol.
 *   **Halaman Utama:** Menampilkan daftar nama petugas beserta profil dan total jumlah penugasan yang telah dilaksanakan.
@@ -99,6 +114,8 @@ Modul ini berfungsi sebagai dashboard analisis untuk memantau beban kerja seluru
     *   **Tombol Reset:** Klik **Reset** (ikon putar) untuk mengembalikan filter ke kondisi awal (menampilkan seluruh data).
 *   **Analisis Individu:** Klik pada nama petugas untuk melihat **Rincian Per Kategori** (misal: Berapa kali bertugas di Bandara, Sidang Kabinet, atau Audiensi).
 *   **Total Statistik:** Terdapat ringkasan **Total Personel** dan **Total Penugasan** kumulatif di bagian pojok kanan atas.
+
+![Dashboard Penugasan Protokol](docs/Penugasan%20protokol.png)
 
 ### G. Modul Manajemen Pengguna (Khusus Super Admin)
 Halaman ini digunakan untuk mengelola akun siapa saja yang dapat mengakses SIAPPRO.
@@ -113,10 +130,26 @@ Halaman ini digunakan untuk mengelola akun siapa saja yang dapat mengakses SIAPP
     *   **Edit User (Ikon Pensil Biru):** Mengubah peran (Role), jenis kelamin, atau menonaktifkan akun.
     *   **Delete User (Ikon Sampah Merah):** Menghapus akses pengguna secara permanen.
 
+````carousel
+![Daftar Pengguna](docs/Management%20user.png)
+<!-- slide -->
+![Form Tambah User](docs/Add%20management%20user.png)
+<!-- slide -->
+![Contoh Pengisian User](docs/Contoh%20add%20mgt%20user.png)
+<!-- slide -->
+![Form Edit User](docs/Edit%20user.png)
+<!-- slide -->
+![Fitur Reset Password](docs/Reset%20password.png)
+<!-- slide -->
+![Contoh Reset Password Baru](docs/Contoh%20reset%20password.png)
+````
+
 ### H. Modul Log Aktivitas (Admin & Super Admin)
 Digunakan untuk melacak setiap perubahan yang terjadi di dalam sistem (audit trail).
 *   **Fungsi:** Melihat siapa yang melakukan tambah/edit/hapus data, pada jam berapa, dan modul apa yang diubah.
 *   **Penting:** Fitur ini berguna untuk memastikan akuntabilitas data jika terjadi kesalahan input atau perubahan data yang mencurigakan.
+
+![Halaman Log Aktivitas](docs/History%20log%20activity.png)
 
 ---
 
@@ -136,6 +169,8 @@ Setelah data pada layar sudah sesuai, klik tombol **"Export"** di pojok kanan at
 Jendela **Export Preview & Settings** akan muncul. Di sini Anda bisa:
 *   **Pilih Kolom Data:** Centang kolom apa saja yang ingin ditampilkan dalam laporan (misal: Tanggal, Nama Kegiatan, Tempat).
 *   **Pilih Format File:** Klik pada ikon **PDF Document** (untuk laporan siap cetak) atau **Excel Sheet** (untuk olah data).
+
+![Pengaturan Export & Preview](docs/Tampilan%20export.png)
 
 ### Langkah 4: Finalisasi
 Klik tombol **"Export Sekarang"**. File akan otomatis terunduh ke komputer Anda.
