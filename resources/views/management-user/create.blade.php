@@ -10,7 +10,7 @@
 
         {{-- Form Section --}}
         <div class="bg-white rounded-b-xl shadow-lg">
-            <form action="{{ route('management-user.store') }}" method="POST" class="p-8 space-y-6" autocomplete="off">
+            <form action="{{ route('management-user.store') }}" method="POST" class="p-8 space-y-6" autocomplete="off"
                 x-data="{ 
                     password: '',
                     showPw: false,
