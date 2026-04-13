@@ -6,20 +6,20 @@ Panduan ini disusun untuk membantu pengguna (Admin & Super Admin) dalam mengoper
 ---
 
 ## 📑 Daftar Isi
-1. [Pendahuluan](#pendahuluan)
-2. [Hak Akses Pengguna](#hak-akses-pengguna)
-3. [Cara Login & Navigasi](#cara-login--navigasi)
-4. [Standar Pengisian Form (PENTING)](#standar-pengisian-form-penting)
-5. [Panduan Modul](#panduan-modul)
-   - [Modul Persidangan](#modul-persidangan)
-   - [Modul Pelayanan Keprotokolan](#modul-pelayanan-keprotokolan)
-   - [Modul Kunjungan Kerja](#modul-kunjungan-kerja)
-   - [Modul Administrasi Perjalanan Dinas](#modul-administrasi-perjalanan-dinas)
-   - [Modul Penugasan Protokol (Monitoring)](#modul-penugasan-protokol-monitoring)
-   - [Modul Manajemen Pengguna (Khusus Super Admin)](#modul-manajemen-pengguna-khusus-super-admin)
-   - [Modul Log Aktivitas (Admin & Super Admin)](#modul-log-aktivitas-admin--super-admin)
-6. [Fitur Export & Laporan](#fitur-export--laporan)
-7. [Troubleshooting & FAQ](#troubleshooting--faq)
+1. [Pendahuluan](#id-1.-pendahuluan)
+2. [Hak Akses Pengguna](#id-2.-hak-akses-pengguna)
+3. [Cara Login & Navigasi](#id-3.-cara-login-and-navigasi)
+4. [Standar Pengisian Form (PENTING)](#id-4.-standar-pengisian-form-penting)
+5. [Panduan Modul](#id-5.-panduan-modul)
+   - [Modul Persidangan](#b.-modul-persidangan)
+   - [Modul Pelayanan Keprotokolan](#c.-modul-pelayanan-keprotokolan)
+   - [Modul Kunjungan Kerja](#d.-modul-kunjungan-kerja)
+   - [Modul Administrasi Perjalanan Dinas](#e.-modul-administrasi-perjalanan-dinas)
+   - [Modul Penugasan Protokol (Monitoring)](#f.-modul-penugasan-protokol-monitoring)
+   - [Modul Manajemen Pengguna (Khusus Super Admin)](#g.-modul-manajemen-pengguna-khusus-super-admin)
+   - [Modul Log Aktivitas (Admin & Super Admin)](#h.-modul-log-aktivitas-admin-and-super-admin)
+6. [Fitur Export & Laporan](#id-6.-fitur-export-and-laporan)
+7. [Troubleshooting & FAQ](#id-7.-troubleshooting-and-faq)
 
 ---
 
@@ -41,11 +41,9 @@ SIAPPRO adalah aplikasi berbasis web yang digunakan untuk mengelola data operasi
    *   Menampilkan ringkasan agenda kegiatan hari ini.
    *   **Fitur Card:** Anda dapat mengklik **Kartu Jumlah Kegiatan** (seperti Total Kegiatan, Bandara, dll) untuk langsung menuju ke daftar data yang sudah terfilter otomatis sesuai kategori tersebut.
 
-````carousel
 ![Dashboard Utama](docs/Menu%20utama.png)
-<!-- slide -->
+
 ![Fitur Card Shortcut](docs/Card%20Pelayanan%20Keprotokolan.png)
-````
 
 ---
 
@@ -130,19 +128,17 @@ Halaman ini digunakan untuk mengelola akun siapa saja yang dapat mengakses SIAPP
     *   **Edit User (Ikon Pensil Biru):** Mengubah peran (Role), jenis kelamin, atau menonaktifkan akun.
     *   **Delete User (Ikon Sampah Merah):** Menghapus akses pengguna secara permanen.
 
-````carousel
 ![Daftar Pengguna](docs/Management%20user.png)
-<!-- slide -->
+
 ![Form Tambah User](docs/Add%20management%20user.png)
-<!-- slide -->
+
 ![Contoh Pengisian User](docs/Contoh%20add%20mgt%20user.png)
-<!-- slide -->
+
 ![Form Edit User](docs/Edit%20user.png)
-<!-- slide -->
+
 ![Fitur Reset Password](docs/Reset%20password.png)
-<!-- slide -->
+
 ![Contoh Reset Password Baru](docs/Contoh%20reset%20password.png)
-````
 
 ### H. Modul Log Aktivitas (Admin & Super Admin)
 Digunakan untuk melacak setiap perubahan yang terjadi di dalam sistem (audit trail).
