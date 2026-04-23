@@ -33,7 +33,7 @@ SIAPPRO adalah aplikasi berbasis web yang digunakan untuk mengelola data operasi
 ## 3. Cara Login & Navigasi
 1. Akses link SIAPPRO.
 2. Masukkan **Username** dan **Password** Anda.
-   ![Halaman Login](https://github.com/anestanestiandi/siap-pro-v1/blob/main/docs/Login.png?raw=true)
+   ![Halaman Login](https://github.com/anestanestiandi/siap-pro-v1/blob/main/docs/Login.png)
 3. Gunakan **Sidebar (Menu Samping)** untuk berpindah antar modul.
    ![Sidebar Menu](https://github.com/anestanestiandi/siap-pro-v1/blob/main/docs/sidebar.png?raw=true) 
 
@@ -41,7 +41,7 @@ SIAPPRO adalah aplikasi berbasis web yang digunakan untuk mengelola data operasi
    *   Menampilkan ringkasan agenda kegiatan hari ini.
    *   **Fitur Card:** Anda dapat mengklik **Kartu Jumlah Kegiatan** (seperti Total Kegiatan, Bandara, dll) untuk langsung menuju ke daftar data yang sudah terfilter otomatis sesuai kategori tersebut.
 
-![Dashboard Utama](docs/menu-utama.png)
+![Dashboard Utama](https://github.com/anestanestiandi/siap-pro-v1/blob/main/docs/menuutama%20-%20Copy.png)
 
 ![Fitur Card Shortcut](docs/card-pelayanan-keprotokolan.png)
 
