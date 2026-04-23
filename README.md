@@ -81,10 +81,15 @@ Jalankan migrasi untuk membuat tabel, mengisi data awal, dan menghubungkan stora
 php artisan migrate --seed
 php artisan storage:link
 ```
-Jika ingin mengimpor data histori kegiatan tahun 2023 dari file CSV yang tersedia, jalankan perintah:
+### 5.1 Import Data Historis 2023
+Jika Anda ingin mengimpor data histori kegiatan tahun 2023 dari file CSV:
+1. Pastikan Anda memiliki file `protokol_2023.csv` dan `persidangan_2023.csv`.
+2. Pindahkan atau salin kedua file tersebut ke dalam folder `storage/app/` di dalam direktori project.
+3. Jalankan perintah custom berikut di terminal:
 ```bash
 php artisan import:siappro-2023
 ```
+Perintah ini akan secara otomatis membaca isi file CSV dan memasukkannya ke dalam tabel terkait di database.
 
 ### 6. Menjalankan Aplikasi
 Gunakan perintah custom yang sudah disediakan (menggunakan `concurrently` untuk server & vite):

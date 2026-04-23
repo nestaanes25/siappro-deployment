@@ -267,6 +267,19 @@
         <div class="bg-blue-100 bg-red-100 bg-green-100 bg-purple-100 bg-amber-100 bg-indigo-100 bg-teal-100 bg-pink-100 opacity-0"></div>
     </div>
 
+    {{-- Floating User Guide Button --}}
+    <a href="{{ asset('docs/PANDUAN_PENGGUNA.pdf') }}" target="_blank" title="Panduan Pengguna (PDF)"
+       class="fixed bottom-6 right-6 z-[90] flex items-center justify-center w-14 h-14 bg-[#3B5286] text-white rounded-full shadow-lg shadow-blue-900/30 hover:bg-[#2E4068] hover:scale-110 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 group">
+        <svg class="w-6 h-6 border-b-2 border-transparent group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+        
+        {{-- Tooltip / Label --}}
+        <span class="absolute right-full mr-4 bg-gray-900 text-white text-sm px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none after:content-[''] after:absolute after:top-1/2 after:-right-1 after:-mt-1 after:border-4 after:border-transparent after:border-l-gray-900">
+            Baca Panduan
+        </span>
+    </a>
+
     @stack('scripts')
 </body>
 
