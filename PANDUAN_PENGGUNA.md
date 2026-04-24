@@ -37,11 +37,6 @@ SIAPPRO adalah aplikasi berbasis web yang digunakan untuk mengelola data operasi
 4. **Dashboard / Menu Utama:**
    *   Menampilkan ringkasan agenda kegiatan hari ini.
    *   **Fitur Card:** Anda dapat mengklik **Kartu Jumlah Kegiatan** (seperti Total Kegiatan, Bandara, dll) untuk langsung menuju ke daftar data yang sudah terfilter otomatis sesuai kategori tersebut.
-
-![Dashboard Utama](https://github.com/anestanestiandi/siap-pro-v1/blob/main/docs/menu-utama.png?raw=true)
-
-![Fitur Card Shortcut](https://github.com/anestanestiandi/siap-pro-v1/blob/main/docs/card-pelayanan-keprotokolan.png?raw=true)
-
 ---
 
 ## 4. Standar Pengisian Form (PENTING)
@@ -114,14 +109,14 @@ Modul ini berfungsi sebagai dashboard analisis untuk memantau beban kerja seluru
 
 ### G. Modul Manajemen Pengguna (Khusus Super Admin)
 Halaman ini digunakan untuk mengelola akun siapa saja yang dapat mengakses SIAPPRO.
-*   **Create User:** Klik **"+ Create User"** untuk menambah staf baru.
+*   **Create User:** Klik **"+ Create User"** untuk menambah staf baru. Anda dapat mengisi password secara manual atau menggunakan tombol **Generate Password** untuk pembuatan password kuat secara otomatis.
 *   **Syarat Password:** Pengguna baru wajib memenuhi kriteria:
     *   Minimal 8 karakter.
     *   Mengandung huruf besar (Uppercase).
     *   Mengandung angka (Number).
     *   Mengandung karakter spesial (Symbol).
 *   **Aksi Akun:**
-    *   **Reset Password (Ikon Kunci Kuning):** Gunakan jika staf lupa password. Ikuti 3 langkah verifikasi untuk membuat password baru.
+    *   **Reset Password (Ikon Kunci Kuning):** Gunakan jika staf lupa password. Ikuti 3 langkah verifikasi untuk membuat password baru. Pada tahap akhir, Anda dapat menentukan password secara manual atau menggunakan fitur **Generate Password** agar lebih praktis dan aman. Gunakan tombol **Salin** untuk membagikan password baru tersebut kepada staf terkait.
     *   **Edit User (Ikon Pensil Biru):** Mengubah peran (Role), jenis kelamin, atau menonaktifkan akun.
     *   **Delete User (Ikon Sampah Merah):** Menghapus akses pengguna secara permanen.
 
