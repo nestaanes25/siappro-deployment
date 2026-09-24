@@ -6,93 +6,73 @@ use App\Models\PelayananKeprotokolan;
 use App\Models\MasterAnggotaDewan;
 use App\Models\MasterJenisPelayanan;
 use App\Models\MasterPetugasProtokol;
+use App\Models\ModuleRead;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PelayananKeprotokolanController extends Controller
 {
     /**
      * Tampilkan daftar kegiatan pelayanan keprotokolan.
+     *
+     * @param Request $request
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
      */
     public function index(Request $request)
     {
         // Update last read for superadmin notification badge
         if (Auth::check() && Auth::user()->role === 'super_admin') {
-            \App\Models\ModuleRead::updateOrCreate(
-            ['id_user' => Auth::id(), 'module_name' => 'pelayanan-keprotokolan'],
-            ['last_read_at' => now()]
+            ModuleRead::updateOrCreate(
+                ['id_user' => Auth::id(), 'module_name' => 'pelayanan-keprotokolan'],
+                ['last_read_at' => now()]
             );
         }
 
-        // 1. Initial Query (Hanya memuat relasi asli, Accessor JSON akan dimuat otomatis di view)
+        // 1. Initial Query
         $query = PelayananKeprotokolan::with(['jenisPelayanan']);
 
-        // 2. Define Filter Logic (Closure for reusability)
-        $applyFilter = function ($q) use ($request) {
-            if ($request->filled('start_date') && $request->filled('end_date')) {
-                $q->whereBetween('tanggal_kegiatan', [$request->start_date, $request->end_date]);
-            }
-            elseif ($request->filled('month')) {
-                try {
-                    $date = \Carbon\Carbon::parse($request->month);
-                    $q->whereYear('tanggal_kegiatan', $date->year)
-                        ->whereMonth('tanggal_kegiatan', $date->month);
-                }
-                catch (\Exception $e) {
-                // Fallback or ignore invalid date
-                }
-            }
-            elseif ($request->filled('year')) {
-                $q->whereYear('tanggal_kegiatan', $request->year);
-            }
-
-            if ($request->filled('id_anggota')) {
-                $q->where(function ($sub) use ($request) {
-                            $sub->whereJsonContains('id_anggota', (string)$request->id_anggota)
-                                ->orWhereJsonContains('id_anggota', (int)$request->id_anggota);
-                        }
-                        );
-                    }
-
-                    // Search Logic
-                    if ($request->filled('search')) {
-                        $search = $request->search;
-                        $q->where(function ($sub) use ($search) {
-                            $sub->where('nama_kegiatan', 'like', "%{$search}%")
-                                ->orWhere('tempat', 'like', "%{$search}%")
-                                ->orWhereHas('jenisPelayanan', function ($q) use ($search) {
-                        $q->where('nama_jenis', 'like', "%{$search}%");
-                    }
-                    );
-
-                    // Search names in JSON field id_anggota
-                    $matchingAnggotaIds = MasterAnggotaDewan::where('nama', 'like', "%{$search}%")
-                        ->pluck('id_anggota')->toArray();
-                    foreach ($matchingAnggotaIds as $id) {
-                        $sub->orWhereJsonContains('id_anggota', (string)$id)
-                            ->orWhereJsonContains('id_anggota', (int)$id);
-                    }
-
-                    // Search names in JSON field id_petugas
-                    $matchingPetugasIds = MasterPetugasProtokol::where('nama', 'like', "%{$search}%")
-                        ->pluck('id_petugas')->toArray();
-                    foreach ($matchingPetugasIds as $id) {
-                        $sub->orWhereJsonContains('id_petugas', (string)$id)
-                            ->orWhereJsonContains('id_petugas', (int)$id);
-                    }
-                }
-                );
-            }
-        };
-
-        // Apply Filter to Main Query
-        $applyFilter($query);
+        // 2. Apply Filter Logic
+        $this->applyFilter($query, $request);
 
         // 3. Summary Cards Data (Filtered)
         $totalKegiatan = $query->count();
+        $totalBreakdown = $this->getTotalBreakdown($query);
+        $jenisPelayananSummary = $this->getJenisSummary($request);
+        $totalProtokol = MasterPetugasProtokol::count();
 
-        // Calculate breakdown for Total Kegiatan card
+        // 4. Sorting
+        $query->orderBy('tanggal_kegiatan', 'desc')->orderBy('waktu', 'desc');
+
+        // 5. Export Logic
+        if ($request->has('export')) {
+            $exportResponse = $this->exportData($query, $request);
+            if ($exportResponse) {
+                return $exportResponse;
+            }
+        }
+
+        // 6. Pagination
+        $kegiatan = $query->paginate(10)->onEachSide(1)->withQueryString();
+        $masterAnggota = MasterAnggotaDewan::where('is_active', 1)->orderBy('nama')->get();
+
+        return view('pelayanan-keprotokolan.index', compact(
+            'kegiatan',
+            'totalKegiatan',
+            'totalBreakdown',
+            'totalProtokol',
+            'jenisPelayananSummary',
+            'masterAnggota'
+        ));
+    }
+
+    /**
+     * Calculate breakdown for Total Kegiatan card.
+     */
+    private function getTotalBreakdown($query)
+    {
         $totalRecords = (clone $query)->get(['id_anggota']);
         $totalAnggotaCounts = [];
         foreach ($totalRecords as $record) {
@@ -108,22 +88,27 @@ class PelayananKeprotokolanController extends Controller
         }
         arsort($totalAnggotaCounts);
         $totalTopIds = array_slice(array_keys($totalAnggotaCounts), 0, 5);
-        $totalBreakdown = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $totalTopIds)->get()->map(function ($a) use ($totalAnggotaCounts) {
+
+        return MasterAnggotaDewan::whereIn('id_anggota', $totalTopIds)->get()->map(function ($a) use ($totalAnggotaCounts) {
             return [
-            'label' => explode(',', $a->nama)[0],
-            'value' => $totalAnggotaCounts[$a->id_anggota]
+                'label' => explode(',', $a->nama)[0],
+                'value' => $totalAnggotaCounts[$a->id_anggota]
             ];
         })->sortByDesc('value')->values();
+    }
 
-        $jenisPelayananSummary = MasterJenisPelayanan::withCount([
-            'pelayananKeprotokolan as total' => function ($q) use ($applyFilter) {
-            $applyFilter($q);
-        }
-        ])->get()
-            ->map(function ($jenis) use ($applyFilter) {
-            // Calculate Anggota Dewan Breakdown for this category
-            $records = \App\Models\PelayananKeprotokolan::where('id_jenis_pelayanan', $jenis->id_jenis_pelayanan);
-            $applyFilter($records);
+    /**
+     * Get summary cards breakdown per jenis pelayanan.
+     */
+    private function getJenisSummary(Request $request)
+    {
+        return MasterJenisPelayanan::withCount([
+            'pelayananKeprotokolan as total' => function ($q) use ($request) {
+                $this->applyFilter($q, $request);
+            }
+        ])->get()->map(function ($jenis) use ($request) {
+            $records = PelayananKeprotokolan::where('id_jenis_pelayanan', $jenis->id_jenis_pelayanan);
+            $this->applyFilter($records, $request);
             $records = $records->get(['id_anggota']);
 
             $anggotaCounts = [];
@@ -140,110 +125,144 @@ class PelayananKeprotokolanController extends Controller
             }
             arsort($anggotaCounts);
             $topIds = array_slice(array_keys($anggotaCounts), 0, 5);
-            $topAnggota = \App\Models\MasterAnggotaDewan::whereIn('id_anggota', $topIds)->get()->map(function ($a) use ($anggotaCounts) {
-                    return [
+            $topAnggota = MasterAnggotaDewan::whereIn('id_anggota', $topIds)->get()->map(function ($a) use ($anggotaCounts) {
+                return [
                     'label' => explode(',', $a->nama)[0],
                     'value' => $anggotaCounts[$a->id_anggota]
-                    ];
-                }
-                )->sortByDesc('value')->values();
-
-                $jenis->breakdown = $topAnggota;
-
-                $colors = [
-                    ['bg' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'border' => 'border-blue-100', 'icon_bg' => 'from-blue-500 to-blue-600', 'shadow' => 'shadow-blue-500/30', 'text' => 'text-blue-600', 'chip_bg' => 'bg-blue-100'],
-                    ['bg' => 'bg-gradient-to-br from-red-50 to-red-100', 'border' => 'border-red-100', 'icon_bg' => 'from-red-500 to-red-600', 'shadow' => 'shadow-red-500/30', 'text' => 'text-red-600', 'chip_bg' => 'bg-red-100'],
-                    ['bg' => 'bg-gradient-to-br from-green-50 to-green-100', 'border' => 'border-green-100', 'icon_bg' => 'from-green-500 to-green-600', 'shadow' => 'shadow-green-500/30', 'text' => 'text-green-600', 'chip_bg' => 'bg-green-100'],
-                    ['bg' => 'bg-gradient-to-br from-purple-50 to-purple-100', 'border' => 'border-purple-100', 'icon_bg' => 'from-purple-500 to-purple-600', 'shadow' => 'shadow-purple-500/30', 'text' => 'text-purple-600', 'chip_bg' => 'bg-purple-100'],
-                    ['bg' => 'bg-gradient-to-br from-amber-50 to-amber-100', 'border' => 'border-amber-100', 'icon_bg' => 'from-amber-500 to-amber-600', 'shadow' => 'shadow-amber-500/30', 'text' => 'text-amber-600', 'chip_bg' => 'bg-amber-100'],
-                    ['bg' => 'bg-gradient-to-br from-indigo-50 to-indigo-100', 'border' => 'border-indigo-100', 'icon_bg' => 'from-indigo-500 to-indigo-600', 'shadow' => 'shadow-indigo-500/30', 'text' => 'text-indigo-600', 'chip_bg' => 'bg-indigo-100'],
-                    ['bg' => 'bg-gradient-to-br from-teal-50 to-teal-100', 'border' => 'border-teal-100', 'icon_bg' => 'from-teal-500 to-teal-600', 'shadow' => 'shadow-teal-500/30', 'text' => 'text-teal-600', 'chip_bg' => 'bg-teal-100'],
-                    ['bg' => 'bg-gradient-to-br from-pink-50 to-pink-100', 'border' => 'border-pink-100', 'icon_bg' => 'from-pink-500 to-pink-600', 'shadow' => 'shadow-pink-500/30', 'text' => 'text-pink-600', 'chip_bg' => 'bg-pink-100'],
                 ];
+            })->sortByDesc('value')->values();
 
-                $colorIndex = ($jenis->id_jenis_pelayanan - 1) % count($colors);
-                $jenis->style = $colors[$colorIndex];
+            $jenis->breakdown = $topAnggota;
 
-                $jenis->label = match ($jenis->nama_jenis) {
-                        'Sidang Kabinet' => 'Sidang',
-                        'Pelayanan Keprotokolan Bandara' => 'Bandara',
-                        'Pelayanan Keprotokolan Acara Dalam Kota' => 'Lokal',
-                        'Audiensi Dengan Pimpinan DPRD' => 'Audiensi',
-                        'Audiensi Kepada RI 1' => 'Aud. RI 1',
-                        'Audiensi Kepada RI 2' => 'Aud. RI 2',
-                        'Penerimaan Kunjungan Kerja' => 'Kunjungan',
-                        default => 'Umum',
-                    };
+            $colors = [
+                ['bg' => 'bg-gradient-to-br from-blue-50 to-blue-100', 'border' => 'border-blue-100', 'icon_bg' => 'from-blue-500 to-blue-600', 'shadow' => 'shadow-blue-500/30', 'text' => 'text-blue-600', 'chip_bg' => 'bg-blue-100'],
+                ['bg' => 'bg-gradient-to-br from-red-50 to-red-100', 'border' => 'border-red-100', 'icon_bg' => 'from-red-500 to-red-600', 'shadow' => 'shadow-red-500/30', 'text' => 'text-red-600', 'chip_bg' => 'bg-red-100'],
+                ['bg' => 'bg-gradient-to-br from-green-50 to-green-100', 'border' => 'border-green-100', 'icon_bg' => 'from-green-500 to-green-600', 'shadow' => 'shadow-green-500/30', 'text' => 'text-green-600', 'chip_bg' => 'bg-green-100'],
+                ['bg' => 'bg-gradient-to-br from-purple-50 to-purple-100', 'border' => 'border-purple-100', 'icon_bg' => 'from-purple-500 to-purple-600', 'shadow' => 'shadow-purple-500/30', 'text' => 'text-purple-600', 'chip_bg' => 'bg-purple-100'],
+                ['bg' => 'bg-gradient-to-br from-amber-50 to-amber-100', 'border' => 'border-amber-100', 'icon_bg' => 'from-amber-500 to-amber-600', 'shadow' => 'shadow-amber-500/30', 'text' => 'text-amber-600', 'chip_bg' => 'bg-amber-100'],
+                ['bg' => 'bg-gradient-to-br from-indigo-50 to-indigo-100', 'border' => 'border-indigo-100', 'icon_bg' => 'from-indigo-500 to-indigo-600', 'shadow' => 'shadow-indigo-500/30', 'text' => 'text-indigo-600', 'chip_bg' => 'bg-indigo-100'],
+                ['bg' => 'bg-gradient-to-br from-teal-50 to-teal-100', 'border' => 'border-teal-100', 'icon_bg' => 'from-teal-500 to-teal-600', 'shadow' => 'shadow-teal-500/30', 'text' => 'text-teal-600', 'chip_bg' => 'bg-teal-100'],
+                ['bg' => 'bg-gradient-to-br from-pink-50 to-pink-100', 'border' => 'border-pink-100', 'icon_bg' => 'from-pink-500 to-pink-600', 'shadow' => 'shadow-pink-500/30', 'text' => 'text-pink-600', 'chip_bg' => 'bg-pink-100'],
+            ];
 
-                return $jenis;
-            });
+            $colorIndex = ($jenis->id_jenis_pelayanan - 1) % count($colors);
+            $jenis->style = $colors[$colorIndex];
 
-        $totalProtokol = MasterPetugasProtokol::count();
+            $jenis->label = match ($jenis->nama_jenis) {
+                'Pelayanan Keprotokolan Bandara' => 'Bandara',
+                'Pelayanan Keprotokolan Acara Dalam Kota' => 'Lokal',
+                'Audiensi Kepada RI 1', 'Audiensi kepada RI 1' => 'Aud. RI 1',
+                'Audiensi Kepada RI 2', 'Audiensi kepada RI 2' => 'Aud. RI 2',
+                'Sidang Kabinet' => 'Sidang',
+                default => 'Umum',
+            };
 
-        // 4. Sorting
-        $query->orderBy('tanggal_kegiatan', 'desc')->orderBy('waktu', 'desc');
+            return $jenis;
+        });
+    }
 
-        // 5. Export Logic
-        if ($request->has('export')) {
-            $kegiatan = $query->get();
-            $columns = $request->input('columns', []);
-
-            if (empty($columns)) {
-                $columns = ['tanggal', 'waktu', 'nama_kegiatan', 'jenis_pelayanan', 'anggota_dewan', 'tempat'];
+    /**
+     * Apply filter logic to the query.
+     */
+    private function applyFilter($query, Request $request)
+    {
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('tanggal_kegiatan', [$request->start_date, $request->end_date]);
+        } elseif ($request->filled('month')) {
+            try {
+                $date = Carbon::parse($request->month);
+                $query->whereYear('tanggal_kegiatan', $date->year)
+                    ->whereMonth('tanggal_kegiatan', $date->month);
+            } catch (\Exception $e) {
+                // Fallback or ignore invalid date
             }
-
-            if ($request->export == 'excel') {
-                $fileName = 'laporan-keprotokolan-' . now()->format('Y-m-d') . '.xls';
-                return response(view('pelayanan-keprotokolan.excel', compact('kegiatan', 'columns')))
-                    ->header('Content-Type', 'application/vnd.ms-excel')
-                    ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
-            }
-
-            if ($request->export == 'pdf') {
-                // Increase memory limit for DomPDF processing
-                @ini_set('memory_limit', '512M');
-                
-                $subTitleParts = [];
-                if($request->filled('start_date') && $request->filled('end_date')) {
-                    $subTitleParts[] = "Periode: " . \Carbon\Carbon::parse($request->start_date)->isoFormat('D MMMM Y') . " - " . \Carbon\Carbon::parse($request->end_date)->isoFormat('D MMMM Y');
-                } elseif($request->filled('date')) {
-                    $subTitleParts[] = "Tanggal: " . \Carbon\Carbon::parse($request->date)->isoFormat('D MMMM Y');
-                } elseif($request->filled('month')) {
-                    $subTitleParts[] = "Bulan: " . \Carbon\Carbon::parse($request->month)->isoFormat('MMMM Y');
-                } elseif($request->filled('year')) {
-                    $subTitleParts[] = "Tahun: " . $request->year;
-                }
-
-                if($request->filled('search')) {
-                    $subTitleParts[] = "Kategori/Cari: " . $request->search;
-                }
-                
-                if($request->filled('id_anggota')) {
-                    $anggota = MasterAnggotaDewan::find($request->id_anggota);
-                    if($anggota) $subTitleParts[] = "Anggota: " . $anggota->nama;
-                }
-
-                $subTitle = empty($subTitleParts) ? 'Semua Data' : implode(' | ', $subTitleParts);
-
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pelayanan-keprotokolan.pdf', compact('kegiatan', 'columns', 'subTitle'));
-                $pdf->setPaper('a4', 'landscape');
-                return $pdf->download('laporan-keprotokolan.pdf');
-            }
+        } elseif ($request->filled('year')) {
+            $query->whereYear('tanggal_kegiatan', $request->year);
         }
 
-        // 6. Pagination
-        $kegiatan = $query->paginate(10)->onEachSide(1)->withQueryString();
+        if ($request->filled('id_anggota')) {
+            $query->where(function ($sub) use ($request) {
+                $sub->whereJsonContains('id_anggota', (string)$request->id_anggota)
+                    ->orWhereJsonContains('id_anggota', (int)$request->id_anggota);
+            });
+        }
 
-        $masterAnggota = MasterAnggotaDewan::where('is_active', 1)->orderBy('nama')->get();
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($sub) use ($search) {
+                $sub->where('nama_kegiatan', 'like', "%{$search}%")
+                    ->orWhere('tempat', 'like', "%{$search}%")
+                    ->orWhereHas('jenisPelayanan', function ($q) use ($search) {
+                        $q->where('nama_jenis', 'like', "%{$search}%");
+                    });
 
-        return view('pelayanan-keprotokolan.index', compact(
-            'kegiatan',
-            'totalKegiatan',
-            'totalBreakdown',
-            'totalProtokol',
-            'jenisPelayananSummary',
-            'masterAnggota'
-        ));
+                $matchingAnggotaIds = MasterAnggotaDewan::where('nama', 'like', "%{$search}%")
+                    ->pluck('id_anggota')->toArray();
+                foreach ($matchingAnggotaIds as $id) {
+                    $sub->orWhereJsonContains('id_anggota', (string)$id)
+                        ->orWhereJsonContains('id_anggota', (int)$id);
+                }
+
+                $matchingPetugasIds = MasterPetugasProtokol::where('nama', 'like', "%{$search}%")
+                    ->pluck('id_petugas')->toArray();
+                foreach ($matchingPetugasIds as $id) {
+                    $sub->orWhereJsonContains('id_petugas', (string)$id)
+                        ->orWhereJsonContains('id_petugas', (int)$id);
+                }
+            });
+        }
+    }
+
+    /**
+     * Handle export data logic.
+     */
+    private function exportData($query, Request $request)
+    {
+        $kegiatan = $query->get();
+        $columns = $request->input('columns', []);
+
+        if (empty($columns)) {
+            $columns = ['tanggal', 'waktu', 'nama_kegiatan', 'jenis_pelayanan', 'anggota_dewan', 'tempat'];
+        }
+
+        if ($request->export == 'excel') {
+            $fileName = 'laporan-keprotokolan-' . now()->format('Y-m-d') . '.xls';
+            return response(view('pelayanan-keprotokolan.excel', compact('kegiatan', 'columns')))
+                ->header('Content-Type', 'application/vnd.ms-excel')
+                ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+        }
+
+        if ($request->export == 'pdf') {
+            @ini_set('memory_limit', '512M');
+
+            $subTitleParts = [];
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $subTitleParts[] = "Periode: " . Carbon::parse($request->start_date)->isoFormat('D MMMM Y') . " - " . Carbon::parse($request->end_date)->isoFormat('D MMMM Y');
+            } elseif ($request->filled('date')) {
+                $subTitleParts[] = "Tanggal: " . Carbon::parse($request->date)->isoFormat('D MMMM Y');
+            } elseif ($request->filled('month')) {
+                $subTitleParts[] = "Bulan: " . Carbon::parse($request->month)->isoFormat('MMMM Y');
+            } elseif ($request->filled('year')) {
+                $subTitleParts[] = "Tahun: " . $request->year;
+            }
+
+            if ($request->filled('search')) {
+                $subTitleParts[] = "Kategori/Cari: " . $request->search;
+            }
+
+            if ($request->filled('id_anggota')) {
+                $anggota = MasterAnggotaDewan::find($request->id_anggota);
+                if ($anggota) $subTitleParts[] = "Anggota: " . $anggota->nama;
+            }
+
+            $subTitle = empty($subTitleParts) ? 'Semua Data' : implode(' | ', $subTitleParts);
+
+            $pdf = Pdf::loadView('pelayanan-keprotokolan.pdf', compact('kegiatan', 'columns', 'subTitle'));
+            $pdf->setPaper('a4', 'landscape');
+            return $pdf->download('laporan-keprotokolan.pdf');
+        }
+
+        return null;
     }
 
 
