@@ -1,1 +1,1 @@
-web: php artisan app:import-db && (php artisan storage:link || true) && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
+web: mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache && chmod -R 775 storage bootstrap/cache && php artisan optimize:clear && php artisan app:import-db && (php artisan storage:link || true) && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
